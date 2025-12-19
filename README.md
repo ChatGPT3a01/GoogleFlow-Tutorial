@@ -30,6 +30,8 @@
 | **Part 3** | 進階功能與創意技巧 | [開啟簡報](https://chatgpt3a01.github.io/GoogleFlow-Tutorial/Part3_進階功能與創意技巧.html) |
 | **Part 4** | 自拍與電影風格製作 | [開啟簡報](https://chatgpt3a01.github.io/GoogleFlow-Tutorial/Part4_自拍與電影風格製作.html) |
 | **Part 5** | 實戰案例與應用 | [開啟簡報](https://chatgpt3a01.github.io/GoogleFlow-Tutorial/Part5_實戰案例與應用.html) |
+| **Part 6** | 穿越時空自拍 | [開啟簡報](https://chatgpt3a01.github.io/GoogleFlow-Tutorial/Part6_穿越時空自拍.html) |
+| **工具** | 提示詞生成器 | [開啟工具](https://chatgpt3a01.github.io/GoogleFlow-Tutorial/提示詞生成器.html) |
 
 ---
 

@@ -1,0 +1,560 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Part 6 - 穿越時空自拍</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Microsoft JhengHei', 'Segoe UI', Arial, sans-serif;
+            background: linear-gradient(135deg, #00bcd4 0%, #009688 100%);
+            min-height: 100vh;
+            overflow: hidden;
+            color: #333;
+        }
+
+        .nav-bar {
+            position: fixed;
+            top: 0; left: 0; right: 0;
+            height: 60px;
+            background: rgba(255, 255, 255, 0.15);
+            backdrop-filter: blur(12px);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0 30px;
+            z-index: 10000;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+
+        .nav-title {
+            font-size: 22px;
+            font-weight: 700;
+            color: #fff;
+            letter-spacing: 1px;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.2);
+        }
+
+        .nav-buttons { display: flex; gap: 12px; }
+
+        .nav-btn {
+            background: rgba(255, 255, 255, 0.2);
+            border: 1px solid rgba(255, 255, 255, 0.4);
+            color: white;
+            padding: 6px 16px;
+            border-radius: 20px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 600;
+            text-decoration: none;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .nav-btn:hover {
+            background: rgba(255, 255, 255, 0.4);
+            transform: translateY(-2px);
+        }
+
+        .nav-arrow {
+            position: fixed;
+            top: 50%;
+            transform: translateY(-50%);
+            background: rgba(255,255,255,0.25);
+            color: white;
+            width: 60px; height: 60px;
+            border-radius: 50%;
+            border: 2px solid rgba(255,255,255,0.4);
+            font-size: 24px;
+            cursor: pointer;
+            z-index: 9000;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .nav-arrow:hover {
+            background: rgba(255,255,255,0.5);
+            transform: translateY(-50%) scale(1.1);
+        }
+        .prev-arrow { left: 30px; }
+        .next-arrow { right: 30px; }
+        .nav-arrow:disabled { opacity: 0.3; cursor: not-allowed; }
+
+        .slide-container {
+            width: 100%;
+            height: 100vh;
+            padding-top: 60px;
+            position: relative;
+            z-index: 1;
+        }
+
+        .slide {
+            position: absolute;
+            top: 60px; left: 0;
+            width: 100%;
+            height: calc(100vh - 60px);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            padding: 40px;
+            opacity: 0;
+            transition: opacity 0.4s ease;
+            z-index: 10;
+        }
+
+        .slide.active {
+            display: flex;
+            opacity: 1;
+            z-index: 20;
+        }
+
+        .content-card {
+            background: rgba(255, 255, 255, 0.98);
+            border-radius: 24px;
+            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.3);
+            padding: 60px;
+            max-width: 1400px;
+            width: 95%;
+            max-height: 88vh;
+            overflow-y: auto;
+            position: relative;
+        }
+
+        h1 { color: #00897b; font-size: 56px; margin-bottom: 24px; text-align: center; }
+        h2 { color: #00bcd4; font-size: 38px; margin-bottom: 35px; border-bottom: 3px solid #009688; padding-bottom: 12px; }
+        h3 { color: #00897b; font-size: 26px; margin: 30px 0 15px 0; }
+        p, li { font-size: 20px; line-height: 1.8; color: #444; margin-bottom: 15px; }
+        code { background: #e0f7fa; padding: 3px 8px; border-radius: 6px; font-family: monospace; color: #006064; font-weight: 600; font-size: 0.95em; }
+
+        .box { padding: 25px; border-radius: 12px; margin: 25px 0; border-left: 6px solid; font-size: 20px; }
+        .info { background: #e3f2fd; border-color: #2196f3; color: #0d47a1; }
+        .warning { background: #fff3cd; border-color: #ffc107; color: #856404; }
+        .success { background: #d4edda; border-color: #28a745; color: #155724; }
+        .time { background: linear-gradient(135deg, #e0f7fa, #b2ebf2); border-color: #00bcd4; color: #006064; }
+
+        .highlight { background: linear-gradient(120deg, #00bcd4 0%, #009688 100%); padding: 2px 8px; border-radius: 4px; font-weight: bold; color: white; }
+
+        .concept-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 25px; margin-top: 30px; }
+        .concept-card { background: #f8f9fa; padding: 25px; border-radius: 15px; border: 2px solid #e9ecef; transition: all 0.3s; }
+        .concept-card:hover { transform: translateY(-8px); border-color: #00bcd4; box-shadow: 0 10px 30px rgba(0,188,212,0.2); }
+        .concept-card h4 { color: #00897b; font-size: 22px; margin-bottom: 12px; }
+
+        .prompt-box { background: linear-gradient(135deg, #1a1a2e, #16213e); color: #e0e0e0; padding: 25px; border-radius: 15px; margin: 20px 0; border-left: 5px solid #00bcd4; font-family: monospace; font-size: 14px; line-height: 1.8; white-space: pre-wrap; word-wrap: break-word; }
+        .prompt-box .label { color: #00bcd4; font-weight: bold; margin-bottom: 10px; display: block; font-family: 'Microsoft JhengHei', sans-serif; font-size: 16px; }
+
+        .timeline { position: relative; padding-left: 40px; margin: 30px 0; }
+        .timeline::before { content: ''; position: absolute; left: 15px; top: 0; bottom: 0; width: 4px; background: linear-gradient(180deg, #00bcd4, #009688); border-radius: 2px; }
+        .timeline-item { position: relative; margin-bottom: 30px; padding: 20px; background: #f8f9fa; border-radius: 15px; border: 2px solid #e0e0e0; }
+        .timeline-item::before { content: ''; position: absolute; left: -33px; top: 25px; width: 20px; height: 20px; background: #00bcd4; border-radius: 50%; border: 4px solid white; box-shadow: 0 0 0 3px #00bcd4; }
+        .timeline-item h4 { color: #00897b; margin-bottom: 10px; }
+
+        .quiz-container { background: linear-gradient(145deg, #ffffff, #f0f4f8); border: 2px solid #00bcd4; border-radius: 20px; padding: 40px; margin: 30px 0; }
+        .quiz-btn { background: linear-gradient(90deg, #00bcd4, #009688); color: white; border: none; padding: 15px 40px; border-radius: 30px; font-size: 20px; font-weight: bold; cursor: pointer; margin-top: 20px; box-shadow: 0 5px 15px rgba(0,188,212,0.3); }
+        .quiz-btn:hover { transform: scale(1.05); }
+
+        .indicators { position: fixed; bottom: 25px; left: 50%; transform: translateX(-50%); display: flex; gap: 12px; z-index: 4000; padding: 10px 25px; background: rgba(0,0,0,0.3); border-radius: 30px; backdrop-filter: blur(5px); }
+        .dot { width: 12px; height: 12px; background: rgba(255,255,255,0.4); border-radius: 50%; cursor: pointer; transition: all 0.3s; }
+        .dot.active { background: #ffeb3b; transform: scale(1.3); }
+
+        .slide.locked .content-card { filter: blur(8px); pointer-events: none; user-select: none; }
+        .unlock-overlay-container { position: absolute; top: 0; left: 0; width: 100%; height: 100%; display: none; flex-direction: column; align-items: center; justify-content: center; z-index: 50; pointer-events: none; }
+        .slide.locked .unlock-overlay-container { display: flex; }
+        .unlock-btn { background: rgba(0, 188, 212, 0.95); color: white; border: 2px solid white; padding: 15px 40px; font-size: 24px; border-radius: 50px; cursor: pointer; box-shadow: 0 10px 30px rgba(0,0,0,0.4); transition: transform 0.2s; pointer-events: auto !important; }
+        .unlock-btn:hover { transform: scale(1.1); background: #009688; }
+
+        .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); display: none; align-items: center; justify-content: center; z-index: 20000; backdrop-filter: blur(5px); }
+        .modal-box { background: white; padding: 40px; border-radius: 20px; text-align: center; width: 90%; max-width: 450px; box-shadow: 0 20px 60px rgba(0,0,0,0.5); }
+        .modal-input { width: 100%; padding: 15px; font-size: 20px; border: 2px solid #e0e0e0; border-radius: 12px; margin: 20px 0; text-align: center; outline: none; }
+        .modal-input:focus { border-color: #00bcd4; }
+        .modal-btn { background: #00bcd4; color: white; border: none; padding: 12px 30px; border-radius: 12px; font-size: 18px; cursor: pointer; margin: 5px; }
+
+        .step-list { counter-reset: step; list-style: none; padding-left: 0; }
+        .step-list li { position: relative; padding-left: 60px; margin-bottom: 25px; }
+        .step-list li::before { counter-increment: step; content: counter(step); position: absolute; left: 0; top: 0; width: 40px; height: 40px; background: linear-gradient(135deg, #00bcd4, #009688); color: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 18px; }
+
+        .age-badge { display: inline-block; padding: 5px 15px; border-radius: 20px; font-size: 14px; font-weight: bold; margin-right: 10px; }
+        .age-child { background: #ffeb3b; color: #333; }
+        .age-teen { background: #4caf50; color: white; }
+        .age-young { background: #2196f3; color: white; }
+        .age-now { background: #9c27b0; color: white; }
+        .age-future { background: #ff5722; color: white; }
+    </style>
+</head>
+<body>
+
+    <div class="nav-bar">
+        <div class="nav-title">Part 6 - 穿越時空自拍</div>
+        <div class="nav-buttons">
+            <a href="GoogleFlow_課程總覽.html" class="nav-btn">🏠 首頁</a>
+            <button class="nav-btn" onclick="toggleFullscreen()">🖥️ 全螢幕</button>
+            <a href="https://labs.google/flow/about" target="_blank" class="nav-btn">🔗 Flow</a>
+            <a href="https://www.facebook.com/?locale=zh_TW" target="_blank" class="nav-btn">📘 FB</a>
+            <a href="https://www.youtube.com/@Liang-yt02" target="_blank" class="nav-btn">🎥 YT</a>
+        </div>
+    </div>
+
+    <div class="slide-container">
+
+        <!-- Slide 1: 封面 -->
+        <div class="slide active">
+            <div class="content-card" style="text-align: center; display: flex; flex-direction: column; justify-content: center; align-items: center;">
+                <h4 style="color: #00897b; letter-spacing: 2px; text-transform: uppercase; margin-bottom: 10px;">Google Flow Tutorial</h4>
+                <h1>Part 6: 穿越時空自拍</h1>
+                <h2 style="border: none; font-weight: normal; font-size: 28px; color: #666; max-width: 800px;">
+                    與不同時期的自己相遇、合照、對話
+                </h2>
+                <div style="margin-top: 40px; display: flex; gap: 20px; flex-wrap: wrap; justify-content: center;">
+                    <span class="highlight">時光穿越</span>
+                    <span class="highlight">多版本自己</span>
+                    <span class="highlight">創意影片</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Slide 2: 概念介紹 -->
+        <div class="slide">
+            <div class="content-card">
+                <h2>🕰️ 穿越時空自拍是什麼？</h2>
+                <p>利用 AI 技術，創造「現在的你」與「不同時期的你」同框的神奇畫面！</p>
+
+                <div class="concept-grid">
+                    <div class="concept-card">
+                        <h4><span class="age-badge age-child">童年</span> 小時候的自己</h4>
+                        <p>與 5-10 歲的童年自己合照，重溫純真時光</p>
+                    </div>
+                    <div class="concept-card">
+                        <h4><span class="age-badge age-teen">青春</span> 青少年的自己</h4>
+                        <p>與國高中時期的自己對話，回憶青澀歲月</p>
+                    </div>
+                    <div class="concept-card">
+                        <h4><span class="age-badge age-young">年輕</span> 年輕時的自己</h4>
+                        <p>與大學或剛出社會的自己相遇</p>
+                    </div>
+                    <div class="concept-card">
+                        <h4><span class="age-badge age-future">未來</span> 老年的自己</h4>
+                        <p>與 20-30 年後的自己見面，思考人生</p>
+                    </div>
+                </div>
+
+                <div class="box time">
+                    <strong>🎯 創意應用：</strong> 生日紀念、人生回顧影片、勵志短片、社群爆款內容
+                </div>
+            </div>
+        </div>
+
+        <!-- Slide 3: 素材準備 -->
+        <div class="slide">
+            <div class="content-card">
+                <h2>📸 素材準備清單</h2>
+                <p>要製作穿越時空自拍，你需要準備以下素材：</p>
+
+                <ol class="step-list">
+                    <li>
+                        <strong>現在的照片（3-4張）</strong><br>
+                        清晰的正面照、側面照，作為主要 Ingredients 參考
+                    </li>
+                    <li>
+                        <strong>舊照片（不同時期）</strong><br>
+                        童年照、學生照、畢業照等，越清晰越好
+                    </li>
+                    <li>
+                        <strong>選擇場景設定</strong><br>
+                        決定相遇的地點：家中客廳、公園、咖啡廳、學校等
+                    </li>
+                    <li>
+                        <strong>構思互動方式</strong><br>
+                        握手、擁抱、並肩而坐、面對面對話
+                    </li>
+                </ol>
+
+                <div class="box warning">
+                    <strong>⚠️ 舊照片處理提示：</strong>
+                    <ul>
+                        <li>老照片可先用 AI 修復工具提升畫質</li>
+                        <li>黑白照片可以保持原樣，增添懷舊感</li>
+                        <li>模糊的照片建議使用多張作為參考</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <!-- Slide 4: 提示詞模板 - 童年篇 -->
+        <div class="slide">
+            <div class="content-card">
+                <h2>👶 提示詞模板：童年篇</h2>
+                <p><span class="age-badge age-child">童年</span> 與小時候的自己合照</p>
+
+                <div class="prompt-box">
+                    <span class="label">📝 童年自己合照 Prompt</span>
+"A heartwarming photograph of an adult [your description] sitting next to their childhood self (around 7 years old) on a park bench. The adult is smiling warmly at the child version, who looks curious and happy. Soft afternoon sunlight, nostalgic atmosphere, photorealistic, highly detailed, emotional connection between the two figures, shallow depth of field."
+                </div>
+
+                <h3>🔧 變數說明</h3>
+                <ul>
+                    <li><code>[your description]</code> - 描述現在的你，如 "Asian man with short black hair wearing a blue shirt"</li>
+                    <li>年齡可調整：5 years old、8 years old、10 years old</li>
+                    <li>場景可更換：living room、school playground、grandmother's house</li>
+                </ul>
+
+                <div class="box info">
+                    <strong>💡 技巧：</strong> 上傳童年照片作為 Ingredients，讓 AI 更準確地還原小時候的樣貌。
+                </div>
+            </div>
+        </div>
+
+        <!-- Slide 5: 提示詞模板 - 青春篇 -->
+        <div class="slide">
+            <div class="content-card">
+                <h2>🎓 提示詞模板：青春篇</h2>
+                <p><span class="age-badge age-teen">青春</span> 與青少年時期的自己對話</p>
+
+                <div class="prompt-box">
+                    <span class="label">📝 青少年自己對話 Prompt</span>
+"A touching scene of a [current age] year old [your description] having a conversation with their teenage self (around 16 years old) in a high school classroom. The teenager is wearing a school uniform, looking thoughtful. The adult version is giving advice with a gentle smile. Late afternoon light streaming through the windows, cinematic lighting, emotional atmosphere, photorealistic, 8K."
+                </div>
+
+                <div class="prompt-box">
+                    <span class="label">📝 畢業紀念 Prompt</span>
+"A sentimental photograph of an adult [your description] standing beside their college graduation self, both in front of a university building. The younger version is wearing graduation gown and cap, holding diploma. They are looking at each other with knowing smiles. Sunny day, celebratory atmosphere, photorealistic, meaningful moment captured."
+                </div>
+            </div>
+        </div>
+
+        <!-- Slide 6: 提示詞模板 - 未來篇 -->
+        <div class="slide">
+            <div class="content-card">
+                <h2>👴 提示詞模板：未來篇</h2>
+                <p><span class="age-badge age-future">未來</span> 與未來的自己相遇</p>
+
+                <div class="prompt-box">
+                    <span class="label">📝 未來自己對話 Prompt</span>
+"A profound photograph of a [current age] year old [your description] meeting their elderly self (around 70 years old) in a peaceful garden. The elderly version has grey hair and gentle wrinkles, wearing comfortable clothes, sitting on a wooden bench. They are holding hands, the older self sharing wisdom. Golden hour lighting, peaceful atmosphere, photorealistic, deeply emotional, cinematic quality."
+                </div>
+
+                <div class="box success">
+                    <strong>🌟 創意方向：</strong>
+                    <ul>
+                        <li>老年版的自己可以帶著智慧的微笑</li>
+                        <li>加入象徵性物品：家族相簿、傳承的手錶</li>
+                        <li>場景選擇具有意義的地點</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <!-- Slide 7: 影片製作 - 時光走廊 -->
+        <div class="slide">
+            <div class="content-card">
+                <h2>🎬 影片製作：時光走廊</h2>
+                <p>創造一段穿越不同時期的連續影片</p>
+
+                <div class="timeline">
+                    <div class="timeline-item">
+                        <h4>場景 1：現在的你</h4>
+                        <p>在一個神秘的走廊入口，現在的你開始行走</p>
+                    </div>
+                    <div class="timeline-item">
+                        <h4>場景 2：遇見童年</h4>
+                        <p>走廊變成老家客廳，遇見小時候的自己</p>
+                    </div>
+                    <div class="timeline-item">
+                        <h4>場景 3：遇見青春</h4>
+                        <p>場景轉換到校園，遇見學生時代的自己</p>
+                    </div>
+                    <div class="timeline-item">
+                        <h4>場景 4：遇見未來</h4>
+                        <p>走廊盡頭是花園，與年老的自己相遇</p>
+                    </div>
+                </div>
+
+                <div class="prompt-box">
+                    <span class="label">📝 時光走廊過渡 Prompt</span>
+"First-person POV walking through a mysterious glowing corridor. The walls shift and transform, showing glimpses of different time periods - childhood toys, school lockers, family photos. Magical particles floating in the air, dreamlike atmosphere, smooth walking motion, ethereal lighting, transitioning through time."
+                </div>
+            </div>
+        </div>
+
+        <!-- Slide 8: 多版本自己同框 -->
+        <div class="slide">
+            <div class="content-card">
+                <h2>👥 進階：多版本自己同框</h2>
+                <p>創造 3 個以上不同時期的自己在同一畫面！</p>
+
+                <div class="prompt-box">
+                    <span class="label">📝 三代自己合照 Prompt</span>
+"A surreal family portrait featuring the same person at three different ages: a child (8 years old), a young adult (25 years old), and middle-aged (current, 45 years old). They are sitting together on a couch in a warm living room, looking at old photo albums. The child is curious, the young adult is energetic, the middle-aged version looks content. Soft warm lighting, photorealistic, emotional connection, highly detailed."
+                </div>
+
+                <div class="concept-grid">
+                    <div class="concept-card">
+                        <h4>🎯 構圖建議</h4>
+                        <p>讓不同年齡的自己有互動：牽手、擁抱、傳遞物品</p>
+                    </div>
+                    <div class="concept-card">
+                        <h4>🎨 服裝差異</h4>
+                        <p>透過服裝強調時代感：童年校服、年輕時尚、成熟穩重</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Slide 9: 影片對話場景 -->
+        <div class="slide">
+            <div class="content-card">
+                <h2>💬 影片對話場景製作</h2>
+                <p>讓不同時期的自己進行對話！</p>
+
+                <div class="prompt-box">
+                    <span class="label">📝 時空對話影片 Prompt</span>
+"A cinematic scene of a [current age] year old [description] sitting across a small table from their younger self (20 years old) in a cozy cafe. They are engaged in deep conversation, the younger version looking uncertain while the older self speaks with gentle wisdom. Warm coffee shop ambiance, soft background chatter, intimate lighting, over-the-shoulder shots alternating between both versions, photorealistic, emotional dialogue scene."
+                </div>
+
+                <h3>🎬 運鏡建議</h3>
+                <ul>
+                    <li><code>over-the-shoulder shot</code> - 過肩鏡頭，增加對話感</li>
+                    <li><code>close-up on expressions</code> - 特寫表情變化</li>
+                    <li><code>slow dolly in</code> - 慢慢推進，強調情感</li>
+                </ul>
+
+                <div class="box info">
+                    <strong>🎵 音訊設定：</strong> 加入輕柔的背景音樂、環境音（咖啡廳低語、杯子輕碰聲），可以讓 Veo 3 自動生成對話內容。
+                </div>
+            </div>
+        </div>
+
+        <!-- Slide 10: 測驗 -->
+        <div class="slide">
+            <div class="content-card">
+                <h2>🧠 隨堂測驗</h2>
+                <div class="quiz-container">
+                    <p><strong>問題：</strong> 製作「與童年自己合照」時，最重要的準備素材是什麼？</p>
+                    <ol style="margin: 20px 0;">
+                        <li>只需要現在的照片</li>
+                        <li>現在的照片 + 童年舊照片作為 Ingredients</li>
+                        <li>只需要詳細的文字描述</li>
+                        <li>別人的童年照片</li>
+                    </ol>
+                    <hr style="margin: 20px 0; border: none; border-top: 2px dashed #e0e0e0;">
+                    <button class="quiz-btn" onclick="openPasswordModal(10)">
+                        🔑 查看解答 (需要密碼)
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Slide 11: 測驗解答 -->
+        <div class="slide locked" id="slide-10">
+            <div class="content-card">
+                <h2>✅ 測驗解答</h2>
+                <div class="box success">
+                    <h3>答案：(2) 現在的照片 + 童年舊照片作為 Ingredients</h3>
+                    <p style="margin-top: 15px;"><strong>解釋：</strong></p>
+                    <ul style="margin-top: 10px;">
+                        <li>現在的照片讓 AI 知道「現在的你」長什麼樣</li>
+                        <li>童年舊照片作為 Ingredients 參考，讓 AI 還原「小時候的你」的真實樣貌</li>
+                        <li>兩者結合才能創造出準確的「時空合照」效果</li>
+                    </ul>
+                </div>
+            </div>
+            <div class="unlock-overlay-container">
+                <button class="unlock-btn" onclick="openPasswordModal(10)">🔓 點擊解鎖解答</button>
+            </div>
+        </div>
+
+        <!-- Slide 12: 總結 -->
+        <div class="slide">
+            <div class="content-card">
+                <h2>🎉 Part 6 總結</h2>
+                <p>你已經學會穿越時空自拍的完整技巧！</p>
+
+                <div class="concept-grid">
+                    <div class="concept-card">
+                        <h4>素材準備</h4>
+                        <p>現在照片 + 不同時期舊照片</p>
+                    </div>
+                    <div class="concept-card">
+                        <h4>童年合照</h4>
+                        <p>溫馨的童年相遇場景</p>
+                    </div>
+                    <div class="concept-card">
+                        <h4>青春對話</h4>
+                        <p>與學生時代的自己交流</p>
+                    </div>
+                    <div class="concept-card">
+                        <h4>未來相遇</h4>
+                        <p>與年老的自己傳承智慧</p>
+                    </div>
+                    <div class="concept-card">
+                        <h4>時光走廊</h4>
+                        <p>穿越不同時期的過渡影片</p>
+                    </div>
+                    <div class="concept-card">
+                        <h4>多版本同框</h4>
+                        <p>三代或更多自己合照</p>
+                    </div>
+                </div>
+
+                <div class="box time" style="margin-top: 30px; text-align: center;">
+                    <strong>🚀 開始創作吧！</strong> 找出你的舊照片，開始製作專屬於你的時光之旅！
+                    <br><br>
+                    <a href="提示詞生成器.html" style="display: inline-block; background: linear-gradient(90deg, #00bcd4, #009688); color: white; padding: 12px 30px; border-radius: 25px; text-decoration: none; font-weight: bold;">前往提示詞生成器 →</a>
+                </div>
+
+                <div style="text-align: center; margin-top: 20px;">
+                    <a href="GoogleFlow_課程總覽.html" style="color: #00897b; font-size: 18px;">← 返回課程總覽</a>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <button class="nav-arrow prev-arrow" id="prevBtn" onclick="changeSlide(-1)">❮</button>
+    <button class="nav-arrow next-arrow" id="nextBtn" onclick="changeSlide(1)">❯</button>
+
+    <div class="indicators" id="indicatorContainer"></div>
+
+    <div class="modal-overlay" id="passwordModal">
+        <div class="modal-box">
+            <h2 style="color: #00bcd4; margin-bottom: 10px;">🔒 解鎖解答</h2>
+            <p style="color: #666;">請輸入密碼以查看隱藏內容</p>
+            <input type="password" class="modal-input" id="passwordInput" placeholder="請輸入密碼" autocomplete="off">
+            <div style="display: flex; justify-content: center; gap: 10px;">
+                <button class="modal-btn" onclick="verifyPassword()">確認</button>
+                <button class="modal-btn" style="background: #999;" onclick="closeModal()">取消</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let currentSlide = 0;
+        const slides = document.querySelectorAll('.slide');
+        const totalSlides = slides.length;
+        let unlockedSlides = new Set();
+        let pendingUnlockIndex = -1;
+        const CORRECT_PASSWORD = "0207";
+
+        function init() { createIndicators(); showSlide(0); updateButtons(); document.addEventListener('keydown', handleKeydown); }
+        function handleKeydown(e) { if (e.key === 'ArrowLeft') changeSlide(-1); if (e.key === 'ArrowRight') changeSlide(1); if (e.key === 'Enter' && document.getElementById('passwordModal').style.display === 'flex') { verifyPassword(); } }
+        function createIndicators() { const container = document.getElementById('indicatorContainer'); container.innerHTML = ''; slides.forEach((_, index) => { const dot = document.createElement('div'); dot.className = 'dot'; dot.onclick = () => goToSlide(index); container.appendChild(dot); }); }
+        function showSlide(index) { if (index < 0) index = 0; if (index >= totalSlides) index = totalSlides - 1; slides.forEach(slide => slide.classList.remove('active')); slides[index].classList.add('active'); if (slides[index].classList.contains('locked') && !unlockedSlides.has(index)) { } else { slides[index].classList.remove('locked'); } currentSlide = index; const dots = document.querySelectorAll('.dot'); dots.forEach((dot, idx) => { dot.classList.toggle('active', idx === index); }); updateButtons(); }
+        function changeSlide(direction) { showSlide(currentSlide + direction); }
+        function goToSlide(index) { showSlide(index); }
+        function updateButtons() { document.getElementById('prevBtn').disabled = currentSlide === 0; document.getElementById('nextBtn').disabled = currentSlide === totalSlides - 1; }
+        function toggleFullscreen() { if (!document.fullscreenElement) { document.documentElement.requestFullscreen(); } else { if (document.exitFullscreen) { document.exitFullscreen(); } } }
+        function openPasswordModal(targetIndex) { pendingUnlockIndex = targetIndex; const modal = document.getElementById('passwordModal'); const input = document.getElementById('passwordInput'); modal.style.display = 'flex'; input.value = ''; input.focus(); }
+        function closeModal() { document.getElementById('passwordModal').style.display = 'none'; }
+        function verifyPassword() { const input = document.getElementById('passwordInput'); if (input.value === CORRECT_PASSWORD) { unlockedSlides.add(pendingUnlockIndex); if (currentSlide === pendingUnlockIndex) { slides[currentSlide].classList.remove('locked'); } else { showSlide(pendingUnlockIndex); } closeModal(); } else { alert("❌ 密碼錯誤！請輸入 0207"); input.value = ''; input.focus(); } }
+        init();
+    </script>
+</body>
+</html>
