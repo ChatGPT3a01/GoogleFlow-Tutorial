@@ -1,0 +1,598 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Part 5 - 實戰案例與應用</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Microsoft JhengHei', 'Segoe UI', Arial, sans-serif;
+            background: linear-gradient(135deg, #9c27b0 0%, #4285f4 100%);
+            min-height: 100vh;
+            overflow: hidden;
+            color: #333;
+        }
+
+        .nav-bar {
+            position: fixed;
+            top: 0; left: 0; right: 0;
+            height: 60px;
+            background: rgba(255, 255, 255, 0.15);
+            backdrop-filter: blur(12px);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0 30px;
+            z-index: 10000;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+
+        .nav-title {
+            font-size: 22px;
+            font-weight: 700;
+            color: #fff;
+            letter-spacing: 1px;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.2);
+        }
+
+        .nav-buttons { display: flex; gap: 12px; }
+
+        .nav-btn {
+            background: rgba(255, 255, 255, 0.2);
+            border: 1px solid rgba(255, 255, 255, 0.4);
+            color: white;
+            padding: 6px 16px;
+            border-radius: 20px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 600;
+            text-decoration: none;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .nav-btn:hover {
+            background: rgba(255, 255, 255, 0.4);
+            transform: translateY(-2px);
+        }
+
+        .nav-arrow {
+            position: fixed;
+            top: 50%;
+            transform: translateY(-50%);
+            background: rgba(255,255,255,0.25);
+            color: white;
+            width: 60px; height: 60px;
+            border-radius: 50%;
+            border: 2px solid rgba(255,255,255,0.4);
+            font-size: 24px;
+            cursor: pointer;
+            z-index: 9000;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .nav-arrow:hover {
+            background: rgba(255,255,255,0.5);
+            transform: translateY(-50%) scale(1.1);
+        }
+        .prev-arrow { left: 30px; }
+        .next-arrow { right: 30px; }
+        .nav-arrow:disabled { opacity: 0.3; cursor: not-allowed; }
+
+        .slide-container {
+            width: 100%;
+            height: 100vh;
+            padding-top: 60px;
+            position: relative;
+            z-index: 1;
+        }
+
+        .slide {
+            position: absolute;
+            top: 60px; left: 0;
+            width: 100%;
+            height: calc(100vh - 60px);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            padding: 40px;
+            opacity: 0;
+            transition: opacity 0.4s ease;
+            z-index: 10;
+        }
+
+        .slide.active {
+            display: flex;
+            opacity: 1;
+            z-index: 20;
+        }
+
+        .content-card {
+            background: rgba(255, 255, 255, 0.98);
+            border-radius: 24px;
+            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.3);
+            padding: 60px;
+            max-width: 1400px;
+            width: 95%;
+            max-height: 88vh;
+            overflow-y: auto;
+            position: relative;
+        }
+
+        h1 { color: #9c27b0; font-size: 56px; margin-bottom: 24px; text-align: center; }
+        h2 { color: #7c4dff; font-size: 38px; margin-bottom: 35px; border-bottom: 3px solid #9c27b0; padding-bottom: 12px; }
+        h3 { color: #9c27b0; font-size: 26px; margin: 30px 0 15px 0; }
+        p, li { font-size: 20px; line-height: 1.8; color: #444; margin-bottom: 15px; }
+        code { background: #f3e5f5; padding: 3px 8px; border-radius: 6px; font-family: monospace; color: #7b1fa2; font-weight: 600; font-size: 0.95em; }
+
+        .box { padding: 25px; border-radius: 12px; margin: 25px 0; border-left: 6px solid; font-size: 20px; }
+        .info { background: #e3f2fd; border-color: #2196f3; color: #0d47a1; }
+        .warning { background: #fff3cd; border-color: #ffc107; color: #856404; }
+        .success { background: #d4edda; border-color: #28a745; color: #155724; }
+        .purple { background: linear-gradient(135deg, #f3e5f5, #e8eaf6); border-color: #9c27b0; color: #4a148c; }
+
+        .highlight { background: linear-gradient(120deg, #9c27b0 0%, #4285f4 100%); padding: 2px 8px; border-radius: 4px; font-weight: bold; color: white; }
+
+        .concept-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 25px; margin-top: 30px; }
+        .concept-card { background: #f8f9fa; padding: 25px; border-radius: 15px; border: 2px solid #e9ecef; transition: all 0.3s; }
+        .concept-card:hover { transform: translateY(-8px); border-color: #9c27b0; box-shadow: 0 10px 30px rgba(156,39,176,0.2); }
+        .concept-card h4 { color: #9c27b0; font-size: 22px; margin-bottom: 12px; }
+
+        .workflow-box { background: linear-gradient(135deg, #1a1a2e, #16213e); color: #e0e0e0; padding: 30px; border-radius: 20px; margin: 25px 0; }
+        .workflow-box h3 { color: #bb86fc; margin-bottom: 20px; }
+        .workflow-step { display: flex; align-items: flex-start; margin-bottom: 20px; }
+        .workflow-step .number { background: linear-gradient(135deg, #9c27b0, #4285f4); color: white; width: 40px; height: 40px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold; margin-right: 20px; flex-shrink: 0; }
+        .workflow-step .content { flex: 1; }
+        .workflow-step .content h4 { color: #bb86fc; margin-bottom: 5px; }
+        .workflow-step .content p { color: #b0b0b0; font-size: 16px; margin: 0; }
+
+        .case-card { background: white; border: 2px solid #e0e0e0; border-radius: 20px; padding: 30px; margin: 20px 0; transition: all 0.3s; }
+        .case-card:hover { border-color: #9c27b0; box-shadow: 0 10px 30px rgba(156,39,176,0.15); }
+        .case-card .case-title { display: flex; align-items: center; gap: 15px; margin-bottom: 15px; }
+        .case-card .case-icon { font-size: 40px; }
+        .case-card h4 { color: #9c27b0; font-size: 24px; }
+
+        .faq-item { background: #f8f9fa; border-radius: 15px; padding: 25px; margin: 15px 0; border-left: 5px solid #9c27b0; }
+        .faq-item h4 { color: #9c27b0; margin-bottom: 10px; }
+        .faq-item p { color: #555; margin: 0; }
+
+        .quiz-container { background: linear-gradient(145deg, #ffffff, #f0f4f8); border: 2px solid #9c27b0; border-radius: 20px; padding: 40px; margin: 30px 0; }
+        .quiz-btn { background: linear-gradient(90deg, #9c27b0, #4285f4); color: white; border: none; padding: 15px 40px; border-radius: 30px; font-size: 20px; font-weight: bold; cursor: pointer; margin-top: 20px; box-shadow: 0 5px 15px rgba(156,39,176,0.3); }
+        .quiz-btn:hover { transform: scale(1.05); }
+
+        .indicators { position: fixed; bottom: 25px; left: 50%; transform: translateX(-50%); display: flex; gap: 12px; z-index: 4000; padding: 10px 25px; background: rgba(0,0,0,0.3); border-radius: 30px; backdrop-filter: blur(5px); }
+        .dot { width: 12px; height: 12px; background: rgba(255,255,255,0.4); border-radius: 50%; cursor: pointer; transition: all 0.3s; }
+        .dot.active { background: #bb86fc; transform: scale(1.3); }
+
+        .slide.locked .content-card { filter: blur(8px); pointer-events: none; user-select: none; }
+        .unlock-overlay-container { position: absolute; top: 0; left: 0; width: 100%; height: 100%; display: none; flex-direction: column; align-items: center; justify-content: center; z-index: 50; pointer-events: none; }
+        .slide.locked .unlock-overlay-container { display: flex; }
+        .unlock-btn { background: rgba(156, 39, 176, 0.95); color: white; border: 2px solid white; padding: 15px 40px; font-size: 24px; border-radius: 50px; cursor: pointer; box-shadow: 0 10px 30px rgba(0,0,0,0.4); transition: transform 0.2s; pointer-events: auto !important; }
+        .unlock-btn:hover { transform: scale(1.1); background: #4285f4; }
+
+        .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); display: none; align-items: center; justify-content: center; z-index: 20000; backdrop-filter: blur(5px); }
+        .modal-box { background: white; padding: 40px; border-radius: 20px; text-align: center; width: 90%; max-width: 450px; box-shadow: 0 20px 60px rgba(0,0,0,0.5); }
+        .modal-input { width: 100%; padding: 15px; font-size: 20px; border: 2px solid #e0e0e0; border-radius: 12px; margin: 20px 0; text-align: center; outline: none; }
+        .modal-input:focus { border-color: #9c27b0; }
+        .modal-btn { background: #9c27b0; color: white; border: none; padding: 12px 30px; border-radius: 12px; font-size: 18px; cursor: pointer; margin: 5px; }
+
+        .resource-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 20px; margin-top: 25px; }
+        .resource-card { background: linear-gradient(135deg, #9c27b0, #4285f4); color: white; padding: 25px; border-radius: 15px; text-align: center; text-decoration: none; transition: all 0.3s; }
+        .resource-card:hover { transform: translateY(-5px); box-shadow: 0 15px 40px rgba(156,39,176,0.4); }
+        .resource-card h4 { margin-bottom: 10px; }
+        .resource-card p { opacity: 0.9; font-size: 14px; }
+
+        .checklist { list-style: none; padding: 0; }
+        .checklist li { padding: 15px 0 15px 50px; position: relative; border-bottom: 1px solid #e0e0e0; }
+        .checklist li::before { content: "✓"; position: absolute; left: 0; top: 15px; width: 30px; height: 30px; background: linear-gradient(135deg, #9c27b0, #4285f4); color: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold; }
+    </style>
+</head>
+<body>
+
+    <div class="nav-bar">
+        <div class="nav-title">Part 5 - 實戰案例與應用</div>
+        <div class="nav-buttons">
+            <a href="GoogleFlow_課程總覽.html" class="nav-btn">🏠 首頁</a>
+            <button class="nav-btn" onclick="toggleFullscreen()">🖥️ 全螢幕</button>
+            <a href="https://labs.google/flow/about" target="_blank" class="nav-btn">🔗 Flow</a>
+        </div>
+    </div>
+
+    <div class="slide-container">
+
+        <!-- Slide 1: 封面 -->
+        <div class="slide active">
+            <div class="content-card" style="text-align: center; display: flex; flex-direction: column; justify-content: center; align-items: center;">
+                <h4 style="color: #9c27b0; letter-spacing: 2px; text-transform: uppercase; margin-bottom: 10px;">Google Flow Tutorial</h4>
+                <h1>Part 5: 實戰案例與應用</h1>
+                <h2 style="border: none; font-weight: normal; font-size: 28px; color: #666; max-width: 800px;">
+                    完整工作流程與創意應用實例
+                </h2>
+                <div style="margin-top: 40px; display: flex; gap: 20px; flex-wrap: wrap; justify-content: center;">
+                    <span class="highlight">完整流程</span>
+                    <span class="highlight">實戰案例</span>
+                    <span class="highlight">進階技巧</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Slide 2: 電影自拍完整工作流程 -->
+        <div class="slide">
+            <div class="content-card">
+                <h2>🎬 電影自拍完整工作流程</h2>
+                <p>從準備素材到輸出成品的完整步驟：</p>
+
+                <div class="workflow-box">
+                    <h3>📋 完整流程</h3>
+                    <div class="workflow-step">
+                        <div class="number">1</div>
+                        <div class="content">
+                            <h4>準備個人照片</h4>
+                            <p>拍攝 4 張不同角度的清晰照片（正面、左側、右側、45度）</p>
+                        </div>
+                    </div>
+                    <div class="workflow-step">
+                        <div class="number">2</div>
+                        <div class="content">
+                            <h4>決定電影場景</h4>
+                            <p>選擇要「自拍」的電影，如復仇者聯盟、星際大戰、蝙蝠俠等</p>
+                        </div>
+                    </div>
+                    <div class="workflow-step">
+                        <div class="number">3</div>
+                        <div class="content">
+                            <h4>生成自拍照片</h4>
+                            <p>使用 Ingredients to Video + 電影自拍提示詞模板生成靜態照片</p>
+                        </div>
+                    </div>
+                    <div class="workflow-step">
+                        <div class="number">4</div>
+                        <div class="content">
+                            <h4>創建過渡影片</h4>
+                            <p>使用 Frames to Video + 運鏡過渡提示詞連接不同場景</p>
+                        </div>
+                    </div>
+                    <div class="workflow-step">
+                        <div class="number">5</div>
+                        <div class="content">
+                            <h4>組合與輸出</h4>
+                            <p>使用 Scenebuilder 編排順序，輸出最終影片</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Slide 3: 案例 1 - 漫威之旅 -->
+        <div class="slide">
+            <div class="content-card">
+                <h2>🦸 案例 1：漫威電影之旅</h2>
+
+                <div class="case-card">
+                    <div class="case-title">
+                        <div class="case-icon">🎬</div>
+                        <h4>場景設計</h4>
+                    </div>
+                    <p>創造一段「參觀漫威電影片場」的影片，連續造訪多個經典場景。</p>
+                </div>
+
+                <div class="concept-grid">
+                    <div class="concept-card">
+                        <h4>場景 A：鋼鐵人實驗室</h4>
+                        <p>與 Tony Stark 在高科技實驗室自拍，背景有鋼鐵人盔甲</p>
+                    </div>
+                    <div class="concept-card">
+                        <h4>過渡：高爾夫球車</h4>
+                        <p>VIP 風格穿越片場，前往下一個佈景</p>
+                    </div>
+                    <div class="concept-card">
+                        <h4>場景 B：雷神阿斯嘉</h4>
+                        <p>與 Thor 在阿斯嘉宮殿自拍，華麗的神域背景</p>
+                    </div>
+                    <div class="concept-card">
+                        <h4>過渡：甩鏡轉場</h4>
+                        <p>360 度旋轉，光線從亮到暗的自然過渡</p>
+                    </div>
+                    <div class="concept-card">
+                        <h4>場景 C：黑豹瓦干達</h4>
+                        <p>與 Black Panther 在瓦干達科技中心自拍</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Slide 4: 案例 2 - 商業應用 -->
+        <div class="slide">
+            <div class="content-card">
+                <h2>💼 案例 2：商業行銷應用</h2>
+
+                <div class="case-card">
+                    <div class="case-title">
+                        <div class="case-icon">📈</div>
+                        <h4>產品展示影片</h4>
+                    </div>
+                    <p>利用 Flow 快速製作產品展示、品牌故事、社群媒體內容。</p>
+                </div>
+
+                <div class="concept-grid">
+                    <div class="concept-card">
+                        <h4>🛍️ 產品展示</h4>
+                        <ul>
+                            <li>360度產品旋轉展示</li>
+                            <li>使用場景模擬</li>
+                            <li>功能動態演示</li>
+                        </ul>
+                    </div>
+                    <div class="concept-card">
+                        <h4>📱 社群內容</h4>
+                        <ul>
+                            <li>短影片廣告</li>
+                            <li>品牌故事動畫</li>
+                            <li>限時動態素材</li>
+                        </ul>
+                    </div>
+                    <div class="concept-card">
+                        <h4>🎓 教育內容</h4>
+                        <ul>
+                            <li>概念視覺化</li>
+                            <li>流程說明動畫</li>
+                            <li>案例情境模擬</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="box info">
+                    <strong>💡 成本優勢：</strong> 相較於傳統影片製作，Flow 可以大幅降低製作時間和成本，特別適合需要快速產出內容的行銷團隊。
+                </div>
+            </div>
+        </div>
+
+        <!-- Slide 5: 積分管理策略 -->
+        <div class="slide">
+            <div class="content-card">
+                <h2>💎 積分管理策略</h2>
+                <p>聰明使用積分，最大化創作效率：</p>
+
+                <div class="concept-grid">
+                    <div class="concept-card" style="border-left: 5px solid #4caf50;">
+                        <h4>✅ 省積分技巧</h4>
+                        <ul>
+                            <li>先用簡短提示詞測試方向</li>
+                            <li>確認風格後再加入細節</li>
+                            <li>善用 Camera Adjustment 而非重新生成</li>
+                            <li>使用 Extend 而非重新生成長影片</li>
+                        </ul>
+                    </div>
+                    <div class="concept-card" style="border-left: 5px solid #f44336;">
+                        <h4>❌ 避免浪費</h4>
+                        <ul>
+                            <li>不要一開始就寫超長提示詞</li>
+                            <li>避免反覆生成相似內容</li>
+                            <li>不滿意時先調整參數再重試</li>
+                            <li>善用預覽功能確認方向</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="box purple">
+                    <strong>📊 建議分配：</strong>
+                    <ul style="margin-top: 10px;">
+                        <li><strong>測試階段：</strong> 20% 積分用於探索和測試</li>
+                        <li><strong>正式製作：</strong> 60% 積分用於最終內容生成</li>
+                        <li><strong>調整優化：</strong> 20% 積分用於修正和延長</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <!-- Slide 6: 常見問題 -->
+        <div class="slide">
+            <div class="content-card">
+                <h2>❓ 常見問題與解決方案</h2>
+
+                <div class="faq-item">
+                    <h4>Q: 生成的影片沒有聲音怎麼辦？</h4>
+                    <p><strong>A:</strong> 確保你使用的是 Veo 3 模型，並在提示詞中明確描述想要的音效。如果使用 Veo 2，則需要後期添加音訊。</p>
+                </div>
+
+                <div class="faq-item">
+                    <h4>Q: 人物臉部變形或不一致怎麼辦？</h4>
+                    <p><strong>A:</strong> 上傳更多不同角度的清晰照片，避免使用遮擋臉部或光線不佳的照片。多次生成選擇最佳結果。</p>
+                </div>
+
+                <div class="faq-item">
+                    <h4>Q: 影片畫質不夠好怎麼辦？</h4>
+                    <p><strong>A:</strong> 訂閱 AI Pro 或 Ultra 方案可使用 1080p 升級功能。在提示詞中加入 "8K, highly detailed, photorealistic"。</p>
+                </div>
+
+                <div class="faq-item">
+                    <h4>Q: 中文提示詞可以用嗎？</h4>
+                    <p><strong>A:</strong> 目前 Flow 只支援英文提示詞，中文會影響生成效果。建議使用翻譯工具轉換後使用。</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Slide 7: 創意應用清單 -->
+        <div class="slide">
+            <div class="content-card">
+                <h2>💡 更多創意應用</h2>
+                <p>Flow 的應用範圍遠不止電影自拍，還可以用於：</p>
+
+                <ul class="checklist">
+                    <li><strong>音樂 MV 製作</strong> - 為歌曲創造視覺故事</li>
+                    <li><strong>虛擬旅遊影片</strong> - 展示未曾去過的地方</li>
+                    <li><strong>夢境視覺化</strong> - 將夢境轉化為影片</li>
+                    <li><strong>歷史場景重現</strong> - 重現歷史時刻</li>
+                    <li><strong>科幻概念展示</strong> - 呈現未來科技想像</li>
+                    <li><strong>遊戲預告片</strong> - 為遊戲概念製作預告</li>
+                    <li><strong>建築可視化</strong> - 展示建築設計效果</li>
+                    <li><strong>時尚展示</strong> - 服裝和配飾的動態展示</li>
+                </ul>
+            </div>
+        </div>
+
+        <!-- Slide 8: 延伸學習資源 -->
+        <div class="slide">
+            <div class="content-card">
+                <h2>📚 延伸學習資源</h2>
+
+                <div class="resource-grid">
+                    <a href="https://labs.google/flow/about" target="_blank" class="resource-card">
+                        <h4>🌐 Flow 官網</h4>
+                        <p>官方文檔與最新功能</p>
+                    </a>
+                    <a href="https://blog.google/technology/ai/google-flow-veo-ai-filmmaking-tool/" target="_blank" class="resource-card">
+                        <h4>📰 Google Blog</h4>
+                        <p>Flow 相關公告與教學</p>
+                    </a>
+                    <a href="https://support.google.com/labs/answer/16353334" target="_blank" class="resource-card">
+                        <h4>❓ 官方幫助中心</h4>
+                        <p>常見問題解答</p>
+                    </a>
+                    <a href="https://www.youtube.com/@Liang-yt02" target="_blank" class="resource-card">
+                        <h4>🎥 YouTube 頻道</h4>
+                        <p>影片教學與實作示範</p>
+                    </a>
+                </div>
+
+                <div class="box info" style="margin-top: 30px;">
+                    <strong>🔔 持續關注：</strong> Google Flow 正在快速更新中，建議定期查看官方公告以了解最新功能！
+                </div>
+            </div>
+        </div>
+
+        <!-- Slide 9: 測驗 -->
+        <div class="slide">
+            <div class="content-card">
+                <h2>🧠 最終測驗</h2>
+                <div class="quiz-container">
+                    <p><strong>問題：</strong> 製作「電影自拍之旅」影片的正確流程順序是？</p>
+                    <ol style="margin: 20px 0;">
+                        <li>過渡影片 → 自拍照片 → 準備照片 → 組合輸出</li>
+                        <li>準備照片 → 生成自拍照片 → 創建過渡影片 → 組合輸出</li>
+                        <li>組合輸出 → 準備照片 → 自拍照片 → 過渡影片</li>
+                        <li>生成自拍照片 → 準備照片 → 組合輸出 → 過渡影片</li>
+                    </ol>
+                    <hr style="margin: 20px 0; border: none; border-top: 2px dashed #e0e0e0;">
+                    <button class="quiz-btn" onclick="openPasswordModal(9)">
+                        🔑 查看解答 (需要密碼)
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Slide 10: 測驗解答 -->
+        <div class="slide locked" id="slide-9">
+            <div class="content-card">
+                <h2>✅ 測驗解答</h2>
+                <div class="box success">
+                    <h3>答案：(2) 準備照片 → 生成自拍照片 → 創建過渡影片 → 組合輸出</h3>
+                    <p style="margin-top: 15px;"><strong>解釋：</strong></p>
+                    <ul style="margin-top: 10px;">
+                        <li><strong>第一步：</strong> 準備個人照片作為 Ingredients 參考</li>
+                        <li><strong>第二步：</strong> 使用提示詞生成各場景的自拍照片</li>
+                        <li><strong>第三步：</strong> 使用 Frames to Video 創建場景間的過渡</li>
+                        <li><strong>第四步：</strong> 使用 Scenebuilder 組合並輸出最終影片</li>
+                    </ul>
+                </div>
+            </div>
+            <div class="unlock-overlay-container">
+                <button class="unlock-btn" onclick="openPasswordModal(9)">🔓 點擊解鎖解答</button>
+            </div>
+        </div>
+
+        <!-- Slide 11: 課程總結 -->
+        <div class="slide">
+            <div class="content-card">
+                <h2>🎉 課程完成！恭喜你！</h2>
+                <p>你已經完成 Google Flow 完整教學，掌握了以下技能：</p>
+
+                <div class="concept-grid">
+                    <div class="concept-card">
+                        <h4>Part 1</h4>
+                        <p>認識 Flow、核心優勢、訂閱方案</p>
+                    </div>
+                    <div class="concept-card">
+                        <h4>Part 2</h4>
+                        <p>Text to Video、提示詞技巧、音訊生成</p>
+                    </div>
+                    <div class="concept-card">
+                        <h4>Part 3</h4>
+                        <p>Frames、Ingredients、物件編輯、Doodling</p>
+                    </div>
+                    <div class="concept-card">
+                        <h4>Part 4</h4>
+                        <p>電影自拍、運鏡過渡、場景轉換</p>
+                    </div>
+                    <div class="concept-card">
+                        <h4>Part 5</h4>
+                        <p>完整流程、實戰案例、進階應用</p>
+                    </div>
+                </div>
+
+                <div class="box purple" style="margin-top: 30px; text-align: center;">
+                    <h3 style="color: #9c27b0; margin-bottom: 15px;">🚀 開始你的創作之旅！</h3>
+                    <p>現在就前往 Flow 開始創作你的第一支 AI 影片吧！</p>
+                    <br>
+                    <a href="https://labs.google/flow/about" target="_blank" style="display: inline-block; background: linear-gradient(90deg, #9c27b0, #4285f4); color: white; padding: 15px 40px; border-radius: 30px; text-decoration: none; font-weight: bold; font-size: 18px;">開始使用 Flow →</a>
+                </div>
+
+                <div style="text-align: center; margin-top: 30px;">
+                    <a href="GoogleFlow_課程總覽.html" style="color: #9c27b0; font-size: 18px;">← 返回課程總覽</a>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <button class="nav-arrow prev-arrow" id="prevBtn" onclick="changeSlide(-1)">❮</button>
+    <button class="nav-arrow next-arrow" id="nextBtn" onclick="changeSlide(1)">❯</button>
+
+    <div class="indicators" id="indicatorContainer"></div>
+
+    <div class="modal-overlay" id="passwordModal">
+        <div class="modal-box">
+            <h2 style="color: #9c27b0; margin-bottom: 10px;">🔒 解鎖解答</h2>
+            <p style="color: #666;">請輸入密碼以查看隱藏內容</p>
+            <input type="password" class="modal-input" id="passwordInput" placeholder="請輸入密碼" autocomplete="off">
+            <div style="display: flex; justify-content: center; gap: 10px;">
+                <button class="modal-btn" onclick="verifyPassword()">確認</button>
+                <button class="modal-btn" style="background: #999;" onclick="closeModal()">取消</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let currentSlide = 0;
+        const slides = document.querySelectorAll('.slide');
+        const totalSlides = slides.length;
+        let unlockedSlides = new Set();
+        let pendingUnlockIndex = -1;
+        const CORRECT_PASSWORD = "0207";
+
+        function init() { createIndicators(); showSlide(0); updateButtons(); document.addEventListener('keydown', handleKeydown); }
+        function handleKeydown(e) { if (e.key === 'ArrowLeft') changeSlide(-1); if (e.key === 'ArrowRight') changeSlide(1); if (e.key === 'Enter' && document.getElementById('passwordModal').style.display === 'flex') { verifyPassword(); } }
+        function createIndicators() { const container = document.getElementById('indicatorContainer'); container.innerHTML = ''; slides.forEach((_, index) => { const dot = document.createElement('div'); dot.className = 'dot'; dot.onclick = () => goToSlide(index); container.appendChild(dot); }); }
+        function showSlide(index) { if (index < 0) index = 0; if (index >= totalSlides) index = totalSlides - 1; slides.forEach(slide => slide.classList.remove('active')); slides[index].classList.add('active'); if (slides[index].classList.contains('locked') && !unlockedSlides.has(index)) { } else { slides[index].classList.remove('locked'); } currentSlide = index; const dots = document.querySelectorAll('.dot'); dots.forEach((dot, idx) => { dot.classList.toggle('active', idx === index); }); updateButtons(); }
+        function changeSlide(direction) { showSlide(currentSlide + direction); }
+        function goToSlide(index) { showSlide(index); }
+        function updateButtons() { document.getElementById('prevBtn').disabled = currentSlide === 0; document.getElementById('nextBtn').disabled = currentSlide === totalSlides - 1; }
+        function toggleFullscreen() { if (!document.fullscreenElement) { document.documentElement.requestFullscreen(); } else { if (document.exitFullscreen) { document.exitFullscreen(); } } }
+        function openPasswordModal(targetIndex) { pendingUnlockIndex = targetIndex; const modal = document.getElementById('passwordModal'); const input = document.getElementById('passwordInput'); modal.style.display = 'flex'; input.value = ''; input.focus(); }
+        function closeModal() { document.getElementById('passwordModal').style.display = 'none'; }
+        function verifyPassword() { const input = document.getElementById('passwordInput'); if (input.value === CORRECT_PASSWORD) { unlockedSlides.add(pendingUnlockIndex); if (currentSlide === pendingUnlockIndex) { slides[currentSlide].classList.remove('locked'); } else { showSlide(pendingUnlockIndex); } closeModal(); } else { alert("❌ 密碼錯誤！請輸入 0207"); input.value = ''; input.focus(); } }
+        init();
+    </script>
+</body>
+</html>

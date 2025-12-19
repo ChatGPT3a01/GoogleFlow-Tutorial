@@ -1,0 +1,725 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Part 3 - 進階功能與創意技巧</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Microsoft JhengHei', 'Segoe UI', Arial, sans-serif;
+            background: linear-gradient(135deg, #34a853 0%, #4285f4 100%);
+            min-height: 100vh;
+            overflow: hidden;
+            color: #333;
+        }
+
+        .nav-bar {
+            position: fixed;
+            top: 0; left: 0; right: 0;
+            height: 60px;
+            background: rgba(255, 255, 255, 0.15);
+            backdrop-filter: blur(12px);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0 30px;
+            z-index: 10000;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+
+        .nav-title {
+            font-size: 22px;
+            font-weight: 700;
+            color: #fff;
+            letter-spacing: 1px;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.2);
+        }
+
+        .nav-buttons { display: flex; gap: 12px; }
+
+        .nav-btn {
+            background: rgba(255, 255, 255, 0.2);
+            border: 1px solid rgba(255, 255, 255, 0.4);
+            color: white;
+            padding: 6px 16px;
+            border-radius: 20px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 600;
+            text-decoration: none;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .nav-btn:hover {
+            background: rgba(255, 255, 255, 0.4);
+            transform: translateY(-2px);
+        }
+
+        .nav-arrow {
+            position: fixed;
+            top: 50%;
+            transform: translateY(-50%);
+            background: rgba(255,255,255,0.25);
+            color: white;
+            width: 60px; height: 60px;
+            border-radius: 50%;
+            border: 2px solid rgba(255,255,255,0.4);
+            font-size: 24px;
+            cursor: pointer;
+            z-index: 9000;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .nav-arrow:hover {
+            background: rgba(255,255,255,0.5);
+            transform: translateY(-50%) scale(1.1);
+        }
+        .prev-arrow { left: 30px; }
+        .next-arrow { right: 30px; }
+        .nav-arrow:disabled { opacity: 0.3; cursor: not-allowed; }
+
+        .slide-container {
+            width: 100%;
+            height: 100vh;
+            padding-top: 60px;
+            position: relative;
+            z-index: 1;
+        }
+
+        .slide {
+            position: absolute;
+            top: 60px; left: 0;
+            width: 100%;
+            height: calc(100vh - 60px);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            padding: 40px;
+            opacity: 0;
+            transition: opacity 0.4s ease;
+            z-index: 10;
+        }
+
+        .slide.active {
+            display: flex;
+            opacity: 1;
+            z-index: 20;
+        }
+
+        .content-card {
+            background: rgba(255, 255, 255, 0.98);
+            border-radius: 24px;
+            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.3);
+            padding: 60px;
+            max-width: 1400px;
+            width: 95%;
+            max-height: 88vh;
+            overflow-y: auto;
+            position: relative;
+        }
+
+        h1 { color: #34a853; font-size: 56px; margin-bottom: 24px; text-align: center; }
+        h2 { color: #4285f4; font-size: 38px; margin-bottom: 35px; border-bottom: 3px solid #34a853; padding-bottom: 12px; }
+        h3 { color: #34a853; font-size: 26px; margin: 30px 0 15px 0; }
+        p, li { font-size: 20px; line-height: 1.8; color: #444; margin-bottom: 15px; }
+        code { background: #e8f5e9; padding: 3px 8px; border-radius: 6px; font-family: monospace; color: #1b5e20; font-weight: 600; font-size: 0.95em; }
+
+        .box { padding: 25px; border-radius: 12px; margin: 25px 0; border-left: 6px solid; font-size: 20px; }
+        .info { background: #e3f2fd; border-color: #2196f3; color: #0d47a1; }
+        .warning { background: #fff3cd; border-color: #ffc107; color: #856404; }
+        .success { background: #d4edda; border-color: #28a745; color: #155724; }
+        .tip { background: #e8f5e9; border-color: #34a853; color: #1b5e20; }
+
+        .highlight { background: linear-gradient(120deg, #34a853 0%, #4285f4 100%); padding: 2px 8px; border-radius: 4px; font-weight: bold; color: white; }
+
+        .concept-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 25px; margin-top: 30px; }
+        .concept-card { background: #f8f9fa; padding: 25px; border-radius: 15px; border: 2px solid #e9ecef; transition: all 0.3s; }
+        .concept-card:hover { transform: translateY(-8px); border-color: #34a853; box-shadow: 0 10px 30px rgba(52,168,83,0.2); }
+        .concept-card h4 { color: #34a853; font-size: 22px; margin-bottom: 12px; }
+
+        .feature-box { background: linear-gradient(135deg, #e8f5e9, #e3f2fd); padding: 30px; border-radius: 20px; margin: 25px 0; border: 2px solid #34a853; }
+        .feature-box h3 { color: #34a853; margin-bottom: 20px; }
+
+        .quiz-container { background: linear-gradient(145deg, #ffffff, #f0f4f8); border: 2px solid #34a853; border-radius: 20px; padding: 40px; margin: 30px 0; }
+        .quiz-btn { background: linear-gradient(90deg, #34a853, #4285f4); color: white; border: none; padding: 15px 40px; border-radius: 30px; font-size: 20px; font-weight: bold; cursor: pointer; margin-top: 20px; box-shadow: 0 5px 15px rgba(52,168,83,0.3); }
+        .quiz-btn:hover { transform: scale(1.05); }
+
+        .indicators { position: fixed; bottom: 25px; left: 50%; transform: translateX(-50%); display: flex; gap: 12px; z-index: 4000; padding: 10px 25px; background: rgba(0,0,0,0.3); border-radius: 30px; backdrop-filter: blur(5px); }
+        .dot { width: 12px; height: 12px; background: rgba(255,255,255,0.4); border-radius: 50%; cursor: pointer; transition: all 0.3s; }
+        .dot.active { background: #fbbc04; transform: scale(1.3); }
+
+        .slide.locked .content-card {
+            filter: blur(8px);
+            pointer-events: none;
+            user-select: none;
+        }
+
+        .unlock-overlay-container {
+            position: absolute;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            z-index: 50;
+            pointer-events: none;
+        }
+
+        .slide.locked .unlock-overlay-container {
+            display: flex;
+        }
+
+        .unlock-btn {
+            background: rgba(52, 168, 83, 0.95);
+            color: white;
+            border: 2px solid white;
+            padding: 15px 40px;
+            font-size: 24px;
+            border-radius: 50px;
+            cursor: pointer;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.4);
+            transition: transform 0.2s;
+            pointer-events: auto !important;
+        }
+        .unlock-btn:hover {
+            transform: scale(1.1);
+            background: #4285f4;
+        }
+
+        .modal-overlay {
+            position: fixed;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            background: rgba(0,0,0,0.8);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 20000;
+            backdrop-filter: blur(5px);
+        }
+
+        .modal-box {
+            background: white;
+            padding: 40px;
+            border-radius: 20px;
+            text-align: center;
+            width: 90%;
+            max-width: 450px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.5);
+        }
+
+        .modal-input {
+            width: 100%;
+            padding: 15px;
+            font-size: 20px;
+            border: 2px solid #e0e0e0;
+            border-radius: 12px;
+            margin: 20px 0;
+            text-align: center;
+            outline: none;
+        }
+        .modal-input:focus { border-color: #34a853; }
+
+        .modal-btn {
+            background: #34a853;
+            color: white;
+            border: none;
+            padding: 12px 30px;
+            border-radius: 12px;
+            font-size: 18px;
+            cursor: pointer;
+            margin: 5px;
+        }
+
+        .step-list { counter-reset: step; list-style: none; padding-left: 0; }
+        .step-list li { position: relative; padding-left: 60px; margin-bottom: 25px; }
+        .step-list li::before {
+            counter-increment: step;
+            content: counter(step);
+            position: absolute;
+            left: 0;
+            top: 0;
+            width: 40px;
+            height: 40px;
+            background: linear-gradient(135deg, #34a853, #4285f4);
+            color: white;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            font-size: 18px;
+        }
+
+        .comparison-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 30px; margin: 25px 0; }
+        .comparison-card { padding: 25px; border-radius: 15px; }
+        .comparison-card.before { background: #ffebee; border: 2px solid #f44336; }
+        .comparison-card.after { background: #e8f5e9; border: 2px solid #4caf50; }
+        .comparison-card h4 { margin-bottom: 15px; }
+
+        @media (max-width: 768px) {
+            .comparison-grid { grid-template-columns: 1fr; }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="nav-bar">
+        <div class="nav-title">Part 3 - 進階功能與創意技巧</div>
+        <div class="nav-buttons">
+            <a href="GoogleFlow_課程總覽.html" class="nav-btn">🏠 首頁</a>
+            <button class="nav-btn" onclick="toggleFullscreen()">🖥️ 全螢幕</button>
+            <a href="https://labs.google/flow/about" target="_blank" class="nav-btn">🔗 Flow</a>
+        </div>
+    </div>
+
+    <div class="slide-container">
+
+        <!-- Slide 1: 封面 -->
+        <div class="slide active">
+            <div class="content-card" style="text-align: center; display: flex; flex-direction: column; justify-content: center; align-items: center;">
+                <h4 style="color: #34a853; letter-spacing: 2px; text-transform: uppercase; margin-bottom: 10px;">Google Flow Tutorial</h4>
+                <h1>Part 3: 進階功能與創意技巧</h1>
+                <h2 style="border: none; font-weight: normal; font-size: 28px; color: #666; max-width: 800px;">
+                    解鎖 Flow 的完整創作潛能
+                </h2>
+                <div style="margin-top: 40px; display: flex; gap: 20px; flex-wrap: wrap; justify-content: center;">
+                    <span class="highlight">Frames to Video</span>
+                    <span class="highlight">Ingredients</span>
+                    <span class="highlight">物件編輯</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Slide 2: Frames to Video -->
+        <div class="slide">
+            <div class="content-card">
+                <h2>🖼️ Frames to Video 功能</h2>
+                <p>使用起始與結束影像，讓 AI 自動生成中間的過渡畫面。</p>
+
+                <div class="feature-box">
+                    <h3>🎯 使用場景</h3>
+                    <ul>
+                        <li>創造場景轉換動畫</li>
+                        <li>角色表情或動作變化</li>
+                        <li>時間流逝效果（白天轉夜晚）</li>
+                        <li>物體型態變化（變身效果）</li>
+                    </ul>
+                </div>
+
+                <ol class="step-list">
+                    <li>
+                        <strong>準備兩張圖片</strong><br>
+                        起始畫面（Frame A）和結束畫面（Frame B）
+                    </li>
+                    <li>
+                        <strong>選擇 Frames to Video 模式</strong><br>
+                        在創作介面選擇此功能
+                    </li>
+                    <li>
+                        <strong>上傳圖片</strong><br>
+                        分別上傳起始和結束影像
+                    </li>
+                    <li>
+                        <strong>AI 自動補間</strong><br>
+                        系統會生成中間過渡並加入音訊
+                    </li>
+                </ol>
+            </div>
+        </div>
+
+        <!-- Slide 3: Ingredients to Video -->
+        <div class="slide">
+            <div class="content-card">
+                <h2>🎨 Ingredients to Video 功能</h2>
+                <p>上傳多張參考圖片，精準控制生成影片中的角色、物件與風格。</p>
+
+                <div class="concept-grid">
+                    <div class="concept-card">
+                        <h4>👤 角色參考</h4>
+                        <p>上傳角色圖片，確保生成影片中的人物外觀一致。</p>
+                    </div>
+                    <div class="concept-card">
+                        <h4>🏠 場景參考</h4>
+                        <p>提供場景圖片，控制環境風格和氛圍。</p>
+                    </div>
+                    <div class="concept-card">
+                        <h4>🎭 物件參考</h4>
+                        <p>上傳特定物件圖片，確保道具造型準確。</p>
+                    </div>
+                </div>
+
+                <div class="box tip">
+                    <strong>🎯 最多 3 張：</strong> Veo 3.1 支援最多上傳 3 張參考圖片，建議分別用於角色、場景、物件。
+                </div>
+
+                <div class="box info">
+                    <strong>💡 使用技巧：</strong> 參考圖片越清晰、越具代表性，生成效果越好。避免使用過於複雜或模糊的圖片。
+                </div>
+            </div>
+        </div>
+
+        <!-- Slide 4: Video Extend -->
+        <div class="slide">
+            <div class="content-card">
+                <h2>🔄 Video Extend 延長功能</h2>
+                <p>將現有影片延長至一分鐘或更長，同時生成對應的音訊。</p>
+
+                <div class="feature-box">
+                    <h3>⚙️ 運作原理</h3>
+                    <p>系統會分析前一段影片的<strong>最後 1 秒</strong>，並以此為基礎生成續接內容，確保視覺和音訊的連貫性。</p>
+                </div>
+
+                <div class="concept-grid">
+                    <div class="concept-card">
+                        <h4>📏 延長長度</h4>
+                        <p>每次延長約 5-10 秒，可重複操作直到達到目標長度。</p>
+                    </div>
+                    <div class="concept-card">
+                        <h4>🎵 音訊同步</h4>
+                        <p>延長時會自動生成匹配的音效，保持聲音連續性。</p>
+                    </div>
+                    <div class="concept-card">
+                        <h4>🎬 敘事控制</h4>
+                        <p>可在延長時添加提示詞，引導後續劇情發展。</p>
+                    </div>
+                </div>
+
+                <div class="box warning">
+                    <strong>⚠️ 注意：</strong> 過多次延長可能導致畫面品質下降或風格偏移，建議適度使用。
+                </div>
+            </div>
+        </div>
+
+        <!-- Slide 5: Insert Object -->
+        <div class="slide">
+            <div class="content-card">
+                <h2>🎭 Insert Object 物件插入</h2>
+                <p>在任何場景中插入新的元素，AI 會自動處理光影和陰影。</p>
+
+                <div class="comparison-grid">
+                    <div class="comparison-card before">
+                        <h4>❌ 傳統做法</h4>
+                        <ul>
+                            <li>需要專業剪輯軟體</li>
+                            <li>手動調整光影</li>
+                            <li>需要去背技術</li>
+                            <li>耗時費力</li>
+                        </ul>
+                    </div>
+                    <div class="comparison-card after">
+                        <h4>✅ Flow Insert</h4>
+                        <ul>
+                            <li>直接描述要插入的物件</li>
+                            <li>AI 自動處理光影融合</li>
+                            <li>無縫整合到場景中</li>
+                            <li>秒級完成</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="box success">
+                    <strong>🌟 應用範例：</strong>
+                    <ul>
+                        <li>在空房間中加入家具</li>
+                        <li>在天空中加入飛機或鳥群</li>
+                        <li>在角色手中加入道具</li>
+                        <li>在場景中加入魔法生物</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <!-- Slide 6: Camera Adjustment -->
+        <div class="slide">
+            <div class="content-card">
+                <h2>📹 Camera Adjustment 攝影機調整</h2>
+                <p>在生成影片後，調整攝影機的位置、角度和運動方式，無需重新生成內容。</p>
+
+                <div class="concept-grid">
+                    <div class="concept-card">
+                        <h4>🔄 Orbit（環繞）</h4>
+                        <p>讓攝影機繞著主體環繞移動，創造動態視角。</p>
+                    </div>
+                    <div class="concept-card">
+                        <h4>📍 Position（位置）</h4>
+                        <p>調整攝影機的空間位置，改變取景角度。</p>
+                    </div>
+                    <div class="concept-card">
+                        <h4>🎥 Dolly（推軌）</h4>
+                        <p>控制攝影機的前進或後退運動。</p>
+                    </div>
+                </div>
+
+                <div class="box tip">
+                    <strong>🎯 Reshoot 功能：</strong> 這個功能也被稱為「Reshoot」，讓你可以嘗試不同視角而不需要完全重做內容，大幅節省積分和時間。
+                </div>
+            </div>
+        </div>
+
+        <!-- Slide 7: Doodling 塗鴉引導 -->
+        <div class="slide">
+            <div class="content-card">
+                <h2>✏️ Doodling 塗鴉引導</h2>
+                <p>直接在圖片上繪製標註，用視覺方式引導 AI 生成，無需複雜的文字描述。</p>
+
+                <div class="feature-box">
+                    <h3>🎨 使用方式</h3>
+                    <ol class="step-list">
+                        <li>
+                            <strong>開啟塗鴉工具</strong><br>
+                            在編輯介面選擇 Doodling 功能
+                        </li>
+                        <li>
+                            <strong>在圖片上繪製</strong><br>
+                            用簡單的線條或形狀標註你想要的變化
+                        </li>
+                        <li>
+                            <strong>AI 理解並生成</strong><br>
+                            系統會解讀你的視覺指示並整合到結果中
+                        </li>
+                    </ol>
+                </div>
+
+                <div class="box info">
+                    <strong>💡 適用場景：</strong>
+                    <ul>
+                        <li>標註物件的移動路徑</li>
+                        <li>圈選需要修改的區域</li>
+                        <li>畫出想要添加的元素輪廓</li>
+                        <li>指示特效出現的位置</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <!-- Slide 8: Scenebuilder -->
+        <div class="slide">
+            <div class="content-card">
+                <h2>🎬 Scenebuilder 場景建構器</h2>
+                <p>無縫編輯和延伸現有鏡頭，建構完整的場景敘事。</p>
+
+                <div class="concept-grid">
+                    <div class="concept-card">
+                        <h4>✂️ 剪輯功能</h4>
+                        <p>裁切影片片段，選擇最佳部分。</p>
+                    </div>
+                    <div class="concept-card">
+                        <h4>🔗 銜接功能</h4>
+                        <p>將多個片段無縫連接成連貫場景。</p>
+                    </div>
+                    <div class="concept-card">
+                        <h4>🎨 風格統一</h4>
+                        <p>確保不同片段之間的視覺風格一致。</p>
+                    </div>
+                    <div class="concept-card">
+                        <h4>📖 敘事編排</h4>
+                        <p>安排鏡頭順序，建構故事流程。</p>
+                    </div>
+                </div>
+
+                <div class="box success">
+                    <strong>🌟 專業級工作流程：</strong> Scenebuilder 讓 Flow 不只是「生成工具」，更是「創作平台」，支援從單一片段到完整短片的製作流程。
+                </div>
+            </div>
+        </div>
+
+        <!-- Slide 9: 測驗 -->
+        <div class="slide">
+            <div class="content-card">
+                <h2>🧠 隨堂測驗</h2>
+                <div class="quiz-container">
+                    <p><strong>問題：</strong> 如果你想讓一個角色從站立變成坐下，最適合使用哪個功能？</p>
+                    <ol style="margin: 20px 0;">
+                        <li>Text to Video</li>
+                        <li>Frames to Video</li>
+                        <li>Insert Object</li>
+                        <li>Video Extend</li>
+                    </ol>
+                    <hr style="margin: 20px 0; border: none; border-top: 2px dashed #e0e0e0;">
+                    <button class="quiz-btn" onclick="openPasswordModal(9)">
+                        🔑 查看解答 (需要密碼)
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Slide 10: 測驗解答 -->
+        <div class="slide locked" id="slide-9">
+            <div class="content-card">
+                <h2>✅ 測驗解答</h2>
+                <div class="box success">
+                    <h3>答案：(2) Frames to Video</h3>
+                    <p style="margin-top: 15px;"><strong>解釋：</strong></p>
+                    <ul style="margin-top: 10px;">
+                        <li>準備兩張圖片：角色站立（Frame A）和角色坐下（Frame B）</li>
+                        <li>AI 會自動生成中間的動作過渡</li>
+                        <li>這比用文字描述更精確，因為你直接控制了起始和結束狀態</li>
+                    </ul>
+                </div>
+            </div>
+            <div class="unlock-overlay-container">
+                <button class="unlock-btn" onclick="openPasswordModal(9)">🔓 點擊解鎖解答</button>
+            </div>
+        </div>
+
+        <!-- Slide 11: 總結 -->
+        <div class="slide">
+            <div class="content-card">
+                <h2>🎉 Part 3 總結</h2>
+                <p>你已經掌握了 Flow 的進階功能！</p>
+
+                <div class="concept-grid">
+                    <div class="concept-card">
+                        <h4>Frames to Video</h4>
+                        <p>用起始和結束影像創造過渡動畫</p>
+                    </div>
+                    <div class="concept-card">
+                        <h4>Ingredients</h4>
+                        <p>用參考圖片控制角色、場景、物件</p>
+                    </div>
+                    <div class="concept-card">
+                        <h4>Insert Object</h4>
+                        <p>在場景中無縫插入新元素</p>
+                    </div>
+                    <div class="concept-card">
+                        <h4>Camera Adjustment</h4>
+                        <p>調整攝影機角度和運動方式</p>
+                    </div>
+                    <div class="concept-card">
+                        <h4>Doodling</h4>
+                        <p>用塗鴉視覺引導 AI 生成</p>
+                    </div>
+                    <div class="concept-card">
+                        <h4>Scenebuilder</h4>
+                        <p>編排和銜接多個場景片段</p>
+                    </div>
+                </div>
+
+                <div class="box tip" style="margin-top: 30px; text-align: center;">
+                    <strong>👉 下一步：</strong> 前往 Part 4 學習電影自拍風格與運鏡過渡技巧！
+                    <br><br>
+                    <a href="Part4_自拍與電影風格製作.html" style="display: inline-block; background: linear-gradient(90deg, #34a853, #4285f4); color: white; padding: 12px 30px; border-radius: 25px; text-decoration: none; font-weight: bold;">前往 Part 4 →</a>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <button class="nav-arrow prev-arrow" id="prevBtn" onclick="changeSlide(-1)">❮</button>
+    <button class="nav-arrow next-arrow" id="nextBtn" onclick="changeSlide(1)">❯</button>
+
+    <div class="indicators" id="indicatorContainer"></div>
+
+    <div class="modal-overlay" id="passwordModal">
+        <div class="modal-box">
+            <h2 style="color: #34a853; margin-bottom: 10px;">🔒 解鎖解答</h2>
+            <p style="color: #666;">請輸入密碼以查看隱藏內容</p>
+            <input type="password" class="modal-input" id="passwordInput" placeholder="請輸入密碼" autocomplete="off">
+            <div style="display: flex; justify-content: center; gap: 10px;">
+                <button class="modal-btn" onclick="verifyPassword()">確認</button>
+                <button class="modal-btn" style="background: #999;" onclick="closeModal()">取消</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let currentSlide = 0;
+        const slides = document.querySelectorAll('.slide');
+        const totalSlides = slides.length;
+        let unlockedSlides = new Set();
+        let pendingUnlockIndex = -1;
+        const CORRECT_PASSWORD = "0207";
+
+        function init() {
+            createIndicators();
+            showSlide(0);
+            updateButtons();
+            document.addEventListener('keydown', handleKeydown);
+        }
+
+        function handleKeydown(e) {
+            if (e.key === 'ArrowLeft') changeSlide(-1);
+            if (e.key === 'ArrowRight') changeSlide(1);
+            if (e.key === 'Enter' && document.getElementById('passwordModal').style.display === 'flex') {
+                verifyPassword();
+            }
+        }
+
+        function createIndicators() {
+            const container = document.getElementById('indicatorContainer');
+            container.innerHTML = '';
+            slides.forEach((_, index) => {
+                const dot = document.createElement('div');
+                dot.className = 'dot';
+                dot.onclick = () => goToSlide(index);
+                container.appendChild(dot);
+            });
+        }
+
+        function showSlide(index) {
+            if (index < 0) index = 0;
+            if (index >= totalSlides) index = totalSlides - 1;
+            slides.forEach(slide => slide.classList.remove('active'));
+            slides[index].classList.add('active');
+            if (slides[index].classList.contains('locked') && !unlockedSlides.has(index)) {
+            } else {
+                slides[index].classList.remove('locked');
+            }
+            currentSlide = index;
+            const dots = document.querySelectorAll('.dot');
+            dots.forEach((dot, idx) => {
+                dot.classList.toggle('active', idx === index);
+            });
+            updateButtons();
+        }
+
+        function changeSlide(direction) { showSlide(currentSlide + direction); }
+        function goToSlide(index) { showSlide(index); }
+        function updateButtons() {
+            document.getElementById('prevBtn').disabled = currentSlide === 0;
+            document.getElementById('nextBtn').disabled = currentSlide === totalSlides - 1;
+        }
+        function toggleFullscreen() {
+            if (!document.fullscreenElement) { document.documentElement.requestFullscreen(); }
+            else { if (document.exitFullscreen) { document.exitFullscreen(); } }
+        }
+        function openPasswordModal(targetIndex) {
+            pendingUnlockIndex = targetIndex;
+            const modal = document.getElementById('passwordModal');
+            const input = document.getElementById('passwordInput');
+            modal.style.display = 'flex';
+            input.value = '';
+            input.focus();
+        }
+        function closeModal() { document.getElementById('passwordModal').style.display = 'none'; }
+        function verifyPassword() {
+            const input = document.getElementById('passwordInput');
+            if (input.value === CORRECT_PASSWORD) {
+                unlockedSlides.add(pendingUnlockIndex);
+                if (currentSlide === pendingUnlockIndex) { slides[currentSlide].classList.remove('locked'); }
+                else { showSlide(pendingUnlockIndex); }
+                closeModal();
+            } else {
+                alert("❌ 密碼錯誤！請輸入 0207");
+                input.value = '';
+                input.focus();
+            }
+        }
+        init();
+    </script>
+</body>
+</html>

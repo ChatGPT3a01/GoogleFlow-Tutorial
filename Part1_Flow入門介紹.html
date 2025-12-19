@@ -1,0 +1,708 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Part 1 - Google Flow 入門介紹</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Microsoft JhengHei', 'Segoe UI', Arial, sans-serif;
+            background: linear-gradient(135deg, #4285f4 0%, #34a853 100%);
+            min-height: 100vh;
+            overflow: hidden;
+            color: #333;
+        }
+
+        .nav-bar {
+            position: fixed;
+            top: 0; left: 0; right: 0;
+            height: 60px;
+            background: rgba(255, 255, 255, 0.15);
+            backdrop-filter: blur(12px);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0 30px;
+            z-index: 10000;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+
+        .nav-title {
+            font-size: 22px;
+            font-weight: 700;
+            color: #fff;
+            letter-spacing: 1px;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.2);
+        }
+
+        .nav-buttons { display: flex; gap: 12px; }
+
+        .nav-btn {
+            background: rgba(255, 255, 255, 0.2);
+            border: 1px solid rgba(255, 255, 255, 0.4);
+            color: white;
+            padding: 6px 16px;
+            border-radius: 20px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 600;
+            text-decoration: none;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .nav-btn:hover {
+            background: rgba(255, 255, 255, 0.4);
+            transform: translateY(-2px);
+        }
+
+        .nav-arrow {
+            position: fixed;
+            top: 50%;
+            transform: translateY(-50%);
+            background: rgba(255,255,255,0.25);
+            color: white;
+            width: 60px; height: 60px;
+            border-radius: 50%;
+            border: 2px solid rgba(255,255,255,0.4);
+            font-size: 24px;
+            cursor: pointer;
+            z-index: 9000;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .nav-arrow:hover {
+            background: rgba(255,255,255,0.5);
+            transform: translateY(-50%) scale(1.1);
+        }
+        .prev-arrow { left: 30px; }
+        .next-arrow { right: 30px; }
+        .nav-arrow:disabled { opacity: 0.3; cursor: not-allowed; }
+
+        .slide-container {
+            width: 100%;
+            height: 100vh;
+            padding-top: 60px;
+            position: relative;
+            z-index: 1;
+        }
+
+        .slide {
+            position: absolute;
+            top: 60px; left: 0;
+            width: 100%;
+            height: calc(100vh - 60px);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            padding: 40px;
+            opacity: 0;
+            transition: opacity 0.4s ease;
+            z-index: 10;
+        }
+
+        .slide.active {
+            display: flex;
+            opacity: 1;
+            z-index: 20;
+        }
+
+        .content-card {
+            background: rgba(255, 255, 255, 0.98);
+            border-radius: 24px;
+            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.3);
+            padding: 60px;
+            max-width: 1400px;
+            width: 95%;
+            max-height: 88vh;
+            overflow-y: auto;
+            position: relative;
+        }
+
+        h1 { color: #4285f4; font-size: 56px; margin-bottom: 24px; text-align: center; }
+        h2 { color: #34a853; font-size: 38px; margin-bottom: 35px; border-bottom: 3px solid #4285f4; padding-bottom: 12px; }
+        h3 { color: #4285f4; font-size: 26px; margin: 30px 0 15px 0; }
+        p, li { font-size: 20px; line-height: 1.8; color: #444; margin-bottom: 15px; }
+        code { background: #e8f5e9; padding: 3px 8px; border-radius: 6px; font-family: monospace; color: #1b5e20; font-weight: 600; font-size: 0.95em; }
+
+        .box { padding: 25px; border-radius: 12px; margin: 25px 0; border-left: 6px solid; font-size: 20px; }
+        .info { background: #e3f2fd; border-color: #2196f3; color: #0d47a1; }
+        .warning { background: #fff3cd; border-color: #ffc107; color: #856404; }
+        .success { background: #d4edda; border-color: #28a745; color: #155724; }
+        .google { background: linear-gradient(135deg, rgba(66,133,244,0.1), rgba(52,168,83,0.1)); border-color: #4285f4; color: #333; }
+
+        .highlight { background: linear-gradient(120deg, #4285f4 0%, #34a853 100%); padding: 2px 8px; border-radius: 4px; font-weight: bold; color: white; }
+
+        .concept-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 25px; margin-top: 30px; }
+        .concept-card { background: #f8f9fa; padding: 25px; border-radius: 15px; border: 2px solid #e9ecef; transition: all 0.3s; }
+        .concept-card:hover { transform: translateY(-8px); border-color: #4285f4; box-shadow: 0 10px 30px rgba(66,133,244,0.2); }
+        .concept-card h4 { color: #4285f4; font-size: 22px; margin-bottom: 12px; }
+
+        .pricing-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 25px; margin-top: 30px; }
+        .pricing-card { background: white; padding: 30px; border-radius: 20px; border: 2px solid #e0e0e0; text-align: center; transition: all 0.3s; }
+        .pricing-card:hover { border-color: #4285f4; transform: scale(1.02); }
+        .pricing-card.featured { border-color: #34a853; background: linear-gradient(180deg, #e8f5e9 0%, white 30%); }
+        .pricing-card h4 { font-size: 24px; color: #333; margin-bottom: 10px; }
+        .pricing-card .price { font-size: 36px; font-weight: 800; color: #4285f4; margin: 15px 0; }
+        .pricing-card .price span { font-size: 16px; color: #666; }
+        .pricing-card ul { text-align: left; margin-top: 20px; }
+        .pricing-card li { font-size: 16px; margin-bottom: 10px; }
+
+        .quiz-container { background: linear-gradient(145deg, #ffffff, #f0f4f8); border: 2px solid #4285f4; border-radius: 20px; padding: 40px; margin: 30px 0; }
+        .quiz-btn { background: linear-gradient(90deg, #4285f4, #34a853); color: white; border: none; padding: 15px 40px; border-radius: 30px; font-size: 20px; font-weight: bold; cursor: pointer; margin-top: 20px; box-shadow: 0 5px 15px rgba(66,133,244,0.3); }
+        .quiz-btn:hover { transform: scale(1.05); }
+
+        .indicators { position: fixed; bottom: 25px; left: 50%; transform: translateX(-50%); display: flex; gap: 12px; z-index: 4000; padding: 10px 25px; background: rgba(0,0,0,0.3); border-radius: 30px; backdrop-filter: blur(5px); }
+        .dot { width: 12px; height: 12px; background: rgba(255,255,255,0.4); border-radius: 50%; cursor: pointer; transition: all 0.3s; }
+        .dot.active { background: #fbbc04; transform: scale(1.3); }
+
+        .slide.locked .content-card {
+            filter: blur(8px);
+            pointer-events: none;
+            user-select: none;
+        }
+
+        .unlock-overlay-container {
+            position: absolute;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            z-index: 50;
+            pointer-events: none;
+        }
+
+        .slide.locked .unlock-overlay-container {
+            display: flex;
+        }
+
+        .unlock-btn {
+            background: rgba(66, 133, 244, 0.95);
+            color: white;
+            border: 2px solid white;
+            padding: 15px 40px;
+            font-size: 24px;
+            border-radius: 50px;
+            cursor: pointer;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.4);
+            transition: transform 0.2s;
+            pointer-events: auto !important;
+        }
+        .unlock-btn:hover {
+            transform: scale(1.1);
+            background: #34a853;
+        }
+
+        .modal-overlay {
+            position: fixed;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            background: rgba(0,0,0,0.8);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 20000;
+            backdrop-filter: blur(5px);
+        }
+
+        .modal-box {
+            background: white;
+            padding: 40px;
+            border-radius: 20px;
+            text-align: center;
+            width: 90%;
+            max-width: 450px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.5);
+        }
+
+        .modal-input {
+            width: 100%;
+            padding: 15px;
+            font-size: 20px;
+            border: 2px solid #e0e0e0;
+            border-radius: 12px;
+            margin: 20px 0;
+            text-align: center;
+            outline: none;
+        }
+        .modal-input:focus { border-color: #4285f4; }
+
+        .modal-btn {
+            background: #4285f4;
+            color: white;
+            border: none;
+            padding: 12px 30px;
+            border-radius: 12px;
+            font-size: 18px;
+            cursor: pointer;
+            margin: 5px;
+        }
+
+        .step-list { counter-reset: step; list-style: none; padding-left: 0; }
+        .step-list li { position: relative; padding-left: 60px; margin-bottom: 25px; }
+        .step-list li::before {
+            counter-increment: step;
+            content: counter(step);
+            position: absolute;
+            left: 0;
+            top: 0;
+            width: 40px;
+            height: 40px;
+            background: linear-gradient(135deg, #4285f4, #34a853);
+            color: white;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            font-size: 18px;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="nav-bar">
+        <div class="nav-title">Part 1 - Google Flow 入門介紹</div>
+        <div class="nav-buttons">
+            <a href="GoogleFlow_課程總覽.html" class="nav-btn">🏠 首頁</a>
+            <button class="nav-btn" onclick="toggleFullscreen()">🖥️ 全螢幕</button>
+            <a href="https://labs.google/flow/about" target="_blank" class="nav-btn">🔗 Flow</a>
+        </div>
+    </div>
+
+    <div class="slide-container">
+
+        <!-- Slide 1: 封面 -->
+        <div class="slide active">
+            <div class="content-card" style="text-align: center; display: flex; flex-direction: column; justify-content: center; align-items: center;">
+                <h4 style="color: #34a853; letter-spacing: 2px; text-transform: uppercase; margin-bottom: 10px;">Google Flow Tutorial</h4>
+                <h1>Part 1: Google Flow 入門介紹</h1>
+                <h2 style="border: none; font-weight: normal; font-size: 28px; color: #666; max-width: 800px;">
+                    認識 Google 最強 AI 影片製作工具
+                </h2>
+                <div style="margin-top: 40px; display: flex; gap: 20px; flex-wrap: wrap; justify-content: center;">
+                    <span class="highlight">Veo 3.1</span>
+                    <span class="highlight">AI 電影製作</span>
+                    <span class="highlight">149+ 國家</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Slide 2: 什麼是 Google Flow -->
+        <div class="slide">
+            <div class="content-card">
+                <h2>🎬 什麼是 Google Flow？</h2>
+                <p>Google Flow 是一款由 Google 推出的 <strong>AI 電影製作工具</strong>，專為創意工作者設計。它使用 Google DeepMind 最先進的生成式 AI 模型，讓使用者能夠輕鬆創作電影級影片。</p>
+
+                <div class="box google">
+                    <strong>🌟 核心定位：</strong> Flow 讓創作者能夠「無縫創建電影級片段、場景和故事」，從概念發想到反覆迭代，一站式完成。
+                </div>
+
+                <div class="concept-grid">
+                    <div class="concept-card">
+                        <h4>🎯 目標用戶</h4>
+                        <p>影片創作者、導演、內容製作者、行銷人員、創意工作者</p>
+                    </div>
+                    <div class="concept-card">
+                        <h4>💡 核心技術</h4>
+                        <p>基於 Veo 3.1 影片生成模型，結合 Gemini AI 智能</p>
+                    </div>
+                    <div class="concept-card">
+                        <h4>📅 推出時間</h4>
+                        <p>2025 年 Google I/O 大會發表，持續更新中</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Slide 3: 三大核心優勢 -->
+        <div class="slide">
+            <div class="content-card">
+                <h2>✨ Flow 三大核心優勢</h2>
+
+                <div class="concept-grid">
+                    <div class="concept-card" style="border-left: 5px solid #4285f4;">
+                        <h4>🔄 Consistent（一致性）</h4>
+                        <p>支援自帶素材或在 Flow 內生成，便於管理和參考，確保角色、場景風格保持一致。</p>
+                    </div>
+                    <div class="concept-card" style="border-left: 5px solid #34a853;">
+                        <h4>🔗 Seamless（無縫銜接）</h4>
+                        <p>介面設計專為創意故事建構流程打造，從概念發想到反覆迭代，一氣呵成。</p>
+                    </div>
+                    <div class="concept-card" style="border-left: 5px solid #fbbc04;">
+                        <h4>🎥 Cinematic（電影級品質）</h4>
+                        <p>採用 Google DeepMind 最進階的 Veo 模型，提供頂級影片品質與真實感。</p>
+                    </div>
+                </div>
+
+                <div class="box info" style="margin-top: 30px;">
+                    <strong>🚀 里程碑：</strong> 自 2025 年 5 月推出以來，已創作超過 <strong>5 億支</strong> 影片！
+                </div>
+            </div>
+        </div>
+
+        <!-- Slide 4: 主要功能總覽 -->
+        <div class="slide">
+            <div class="content-card">
+                <h2>🛠️ 主要功能總覽</h2>
+
+                <div class="concept-grid">
+                    <div class="concept-card">
+                        <h4>📝 Text to Video</h4>
+                        <p>輸入文字描述，直接生成影片。支援音效、對話與多場景。</p>
+                    </div>
+                    <div class="concept-card">
+                        <h4>🖼️ Frames to Video</h4>
+                        <p>使用起始與結束影像，AI 自動補間中間畫面與音訊。</p>
+                    </div>
+                    <div class="concept-card">
+                        <h4>🎨 Ingredients to Video</h4>
+                        <p>上傳多張參考圖片，控制角色、物件與風格。</p>
+                    </div>
+                    <div class="concept-card">
+                        <h4>📹 Camera Control</h4>
+                        <p>控制攝影機位置、軌道、推進方式，模擬專業運鏡。</p>
+                    </div>
+                    <div class="concept-card">
+                        <h4>🎭 Insert Object</h4>
+                        <p>在場景中插入新元素，AI 自動處理光影與陰影。</p>
+                    </div>
+                    <div class="concept-card">
+                        <h4>🔄 Video Extend</h4>
+                        <p>延長影片長度至一分鐘以上，同時生成對應音訊。</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Slide 5: 最新功能更新 -->
+        <div class="slide">
+            <div class="content-card">
+                <h2>🆕 Veo 3.1 最新功能更新</h2>
+                <p>2025 年底的重大更新帶來更多創意控制：</p>
+
+                <div class="concept-grid">
+                    <div class="concept-card" style="background: linear-gradient(135deg, #e3f2fd, #fff);">
+                        <h4>✏️ Doodling 塗鴉引導</h4>
+                        <p>直接在圖片上繪製標註，無需文字描述，AI 理解視覺信號並整合到生成結果。</p>
+                    </div>
+                    <div class="concept-card" style="background: linear-gradient(135deg, #e8f5e9, #fff);">
+                        <h4>📷 Camera Adjustment</h4>
+                        <p>新功能：調整攝影機位置、環繞角度與推進方式，嘗試不同視角無需重做內容。</p>
+                    </div>
+                    <div class="concept-card" style="background: linear-gradient(135deg, #fff3e0, #fff);">
+                        <h4>🎵 完整音訊支援</h4>
+                        <p>所有功能現已支援音訊生成，包括音效、背景音樂與角色對話。</p>
+                    </div>
+                    <div class="concept-card" style="background: linear-gradient(135deg, #fce4ec, #fff);">
+                        <h4>🗑️ 物件移除（即將推出）</h4>
+                        <p>移除影片中不需要的元素，系統自動重建背景與周邊區域。</p>
+                    </div>
+                </div>
+
+                <div class="box success">
+                    <strong>進化重點：</strong> Flow 從「一次生成、聽天由命」演進為「反覆修正、逐步逼近理想結果」的創作模式。
+                </div>
+            </div>
+        </div>
+
+        <!-- Slide 6: 訂閱方案 -->
+        <div class="slide">
+            <div class="content-card">
+                <h2>💰 訂閱方案</h2>
+
+                <div class="pricing-grid">
+                    <div class="pricing-card">
+                        <h4>免費版</h4>
+                        <div class="price">$0 <span>/月</span></div>
+                        <ul>
+                            <li>180 月度積分</li>
+                            <li>基本功能體驗</li>
+                            <li>標準畫質輸出</li>
+                            <li>適合初學者試用</li>
+                        </ul>
+                    </div>
+                    <div class="pricing-card featured">
+                        <h4>Google AI Pro</h4>
+                        <div class="price" style="color: #34a853;">$19.99 <span>/月</span></div>
+                        <ul>
+                            <li>首月免費試用</li>
+                            <li>100 次生成/月</li>
+                            <li>完整 Flow 功能</li>
+                            <li>Gemini 應用程式</li>
+                            <li>雲端儲存空間</li>
+                        </ul>
+                    </div>
+                    <div class="pricing-card">
+                        <h4>Google AI Ultra</h4>
+                        <div class="price">$249.99 <span>/月</span></div>
+                        <ul>
+                            <li>最高使用量限制</li>
+                            <li>優先使用 Veo 3</li>
+                            <li>原生音訊生成</li>
+                            <li>1080p 升級</li>
+                            <li>早期功能體驗</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="box warning" style="margin-top: 30px;">
+                    <strong>💡 建議：</strong> 新手建議從免費版開始體驗，熟悉後再升級 AI Pro 方案。
+                </div>
+            </div>
+        </div>
+
+        <!-- Slide 7: 如何開始使用 -->
+        <div class="slide">
+            <div class="content-card">
+                <h2>🚀 如何開始使用 Flow</h2>
+
+                <ol class="step-list">
+                    <li>
+                        <strong>前往 Flow 官網</strong><br>
+                        開啟瀏覽器，訪問 <code>https://labs.google/flow/</code>
+                    </li>
+                    <li>
+                        <strong>登入 Google 帳號</strong><br>
+                        使用你的 Google 帳號登入，確保所在地區支援此服務
+                    </li>
+                    <li>
+                        <strong>點擊「Create with Flow」</strong><br>
+                        進入創作介面，開始你的 AI 影片創作之旅
+                    </li>
+                    <li>
+                        <strong>建立新專案</strong><br>
+                        點擊「New Project」，為專案命名並開始創作
+                    </li>
+                    <li>
+                        <strong>選擇創作模式</strong><br>
+                        選擇 Text to Video、Frames to Video 或其他模式
+                    </li>
+                </ol>
+
+                <div class="box info">
+                    <strong>🌍 可用地區：</strong> Flow 目前支援超過 149 個國家和地區，台灣已在支援範圍內！
+                </div>
+            </div>
+        </div>
+
+        <!-- Slide 8: 測驗 -->
+        <div class="slide">
+            <div class="content-card">
+                <h2>🧠 隨堂測驗</h2>
+                <div class="quiz-container">
+                    <p><strong>問題：</strong> Google Flow 的三大核心優勢是什麼？</p>
+                    <ol style="margin: 20px 0;">
+                        <li>Fast（快速）、Free（免費）、Fun（有趣）</li>
+                        <li>Consistent（一致性）、Seamless（無縫）、Cinematic（電影級）</li>
+                        <li>Simple（簡單）、Smart（智能）、Social（社交）</li>
+                        <li>Creative（創意）、Cloud（雲端）、Collaborative（協作）</li>
+                    </ol>
+                    <hr style="margin: 20px 0; border: none; border-top: 2px dashed #e0e0e0;">
+                    <button class="quiz-btn" onclick="openPasswordModal(8)">
+                        🔑 查看解答 (需要密碼)
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Slide 9: 測驗解答 -->
+        <div class="slide locked" id="slide-8">
+            <div class="content-card">
+                <h2>✅ 測驗解答</h2>
+                <div class="box success">
+                    <h3>答案：(2) Consistent（一致性）、Seamless（無縫）、Cinematic（電影級）</h3>
+                    <p style="margin-top: 15px;"><strong>解釋：</strong></p>
+                    <ul style="margin-top: 10px;">
+                        <li><strong>Consistent：</strong> 確保角色、場景風格保持一致</li>
+                        <li><strong>Seamless：</strong> 從概念到迭代的無縫創作流程</li>
+                        <li><strong>Cinematic：</strong> 使用最先進的 Veo 模型提供電影級品質</li>
+                    </ul>
+                </div>
+            </div>
+            <div class="unlock-overlay-container">
+                <button class="unlock-btn" onclick="openPasswordModal(8)">🔓 點擊解鎖解答</button>
+            </div>
+        </div>
+
+        <!-- Slide 10: 總結 -->
+        <div class="slide">
+            <div class="content-card">
+                <h2>🎉 Part 1 總結</h2>
+                <p>恭喜你完成 Google Flow 入門介紹！讓我們回顧重點：</p>
+
+                <div class="concept-grid">
+                    <div class="concept-card">
+                        <h4>認識 Flow</h4>
+                        <p>Google 推出的 AI 電影製作工具，使用 Veo 3.1 模型</p>
+                    </div>
+                    <div class="concept-card">
+                        <h4>核心功能</h4>
+                        <p>Text/Frames/Ingredients to Video、Camera Control、物件編輯</p>
+                    </div>
+                    <div class="concept-card">
+                        <h4>訂閱方案</h4>
+                        <p>免費版、AI Pro ($19.99)、AI Ultra ($249.99)</p>
+                    </div>
+                    <div class="concept-card">
+                        <h4>開始使用</h4>
+                        <p>前往 labs.google/flow 登入開始創作</p>
+                    </div>
+                </div>
+
+                <div class="box google" style="margin-top: 30px; text-align: center;">
+                    <strong>👉 下一步：</strong> 前往 Part 2 學習基礎操作與文字轉影片技巧！
+                    <br><br>
+                    <a href="Part2_基礎操作與文字轉影片.html" style="display: inline-block; background: linear-gradient(90deg, #4285f4, #34a853); color: white; padding: 12px 30px; border-radius: 25px; text-decoration: none; font-weight: bold;">前往 Part 2 →</a>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <button class="nav-arrow prev-arrow" id="prevBtn" onclick="changeSlide(-1)">❮</button>
+    <button class="nav-arrow next-arrow" id="nextBtn" onclick="changeSlide(1)">❯</button>
+
+    <div class="indicators" id="indicatorContainer"></div>
+
+    <div class="modal-overlay" id="passwordModal">
+        <div class="modal-box">
+            <h2 style="color: #4285f4; margin-bottom: 10px;">🔒 解鎖解答</h2>
+            <p style="color: #666;">請輸入密碼以查看隱藏內容</p>
+            <input type="password" class="modal-input" id="passwordInput" placeholder="請輸入密碼" autocomplete="off">
+            <div style="display: flex; justify-content: center; gap: 10px;">
+                <button class="modal-btn" onclick="verifyPassword()">確認</button>
+                <button class="modal-btn" style="background: #999;" onclick="closeModal()">取消</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let currentSlide = 0;
+        const slides = document.querySelectorAll('.slide');
+        const totalSlides = slides.length;
+        let unlockedSlides = new Set();
+        let pendingUnlockIndex = -1;
+        const CORRECT_PASSWORD = "0207";
+
+        function init() {
+            createIndicators();
+            showSlide(0);
+            updateButtons();
+            document.addEventListener('keydown', handleKeydown);
+        }
+
+        function handleKeydown(e) {
+            if (e.key === 'ArrowLeft') changeSlide(-1);
+            if (e.key === 'ArrowRight') changeSlide(1);
+            if (e.key === 'Enter' && document.getElementById('passwordModal').style.display === 'flex') {
+                verifyPassword();
+            }
+        }
+
+        function createIndicators() {
+            const container = document.getElementById('indicatorContainer');
+            container.innerHTML = '';
+            slides.forEach((_, index) => {
+                const dot = document.createElement('div');
+                dot.className = 'dot';
+                dot.onclick = () => goToSlide(index);
+                container.appendChild(dot);
+            });
+        }
+
+        function showSlide(index) {
+            if (index < 0) index = 0;
+            if (index >= totalSlides) index = totalSlides - 1;
+
+            slides.forEach(slide => slide.classList.remove('active'));
+            slides[index].classList.add('active');
+
+            if (slides[index].classList.contains('locked') && !unlockedSlides.has(index)) {
+                // keep locked
+            } else {
+                slides[index].classList.remove('locked');
+            }
+
+            currentSlide = index;
+
+            const dots = document.querySelectorAll('.dot');
+            dots.forEach((dot, idx) => {
+                dot.classList.toggle('active', idx === index);
+            });
+
+            updateButtons();
+        }
+
+        function changeSlide(direction) {
+            showSlide(currentSlide + direction);
+        }
+
+        function goToSlide(index) {
+            showSlide(index);
+        }
+
+        function updateButtons() {
+            document.getElementById('prevBtn').disabled = currentSlide === 0;
+            document.getElementById('nextBtn').disabled = currentSlide === totalSlides - 1;
+        }
+
+        function toggleFullscreen() {
+            if (!document.fullscreenElement) {
+                document.documentElement.requestFullscreen();
+            } else {
+                if (document.exitFullscreen) {
+                    document.exitFullscreen();
+                }
+            }
+        }
+
+        function openPasswordModal(targetIndex) {
+            pendingUnlockIndex = targetIndex;
+            const modal = document.getElementById('passwordModal');
+            const input = document.getElementById('passwordInput');
+            modal.style.display = 'flex';
+            input.value = '';
+            input.focus();
+        }
+
+        function closeModal() {
+            document.getElementById('passwordModal').style.display = 'none';
+        }
+
+        function verifyPassword() {
+            const input = document.getElementById('passwordInput');
+            if (input.value === CORRECT_PASSWORD) {
+                unlockedSlides.add(pendingUnlockIndex);
+
+                if (currentSlide === pendingUnlockIndex) {
+                    slides[currentSlide].classList.remove('locked');
+                } else {
+                    showSlide(pendingUnlockIndex);
+                }
+
+                closeModal();
+            } else {
+                alert("❌ 密碼錯誤！請輸入 0207");
+                input.value = '';
+                input.focus();
+            }
+        }
+
+        init();
+    </script>
+</body>
+</html>

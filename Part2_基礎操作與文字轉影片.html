@@ -1,0 +1,758 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Part 2 - 基礎操作與文字轉影片</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Microsoft JhengHei', 'Segoe UI', Arial, sans-serif;
+            background: linear-gradient(135deg, #fbbc04 0%, #ea4335 100%);
+            min-height: 100vh;
+            overflow: hidden;
+            color: #333;
+        }
+
+        .nav-bar {
+            position: fixed;
+            top: 0; left: 0; right: 0;
+            height: 60px;
+            background: rgba(255, 255, 255, 0.15);
+            backdrop-filter: blur(12px);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0 30px;
+            z-index: 10000;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+
+        .nav-title {
+            font-size: 22px;
+            font-weight: 700;
+            color: #fff;
+            letter-spacing: 1px;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.2);
+        }
+
+        .nav-buttons { display: flex; gap: 12px; }
+
+        .nav-btn {
+            background: rgba(255, 255, 255, 0.2);
+            border: 1px solid rgba(255, 255, 255, 0.4);
+            color: white;
+            padding: 6px 16px;
+            border-radius: 20px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 600;
+            text-decoration: none;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .nav-btn:hover {
+            background: rgba(255, 255, 255, 0.4);
+            transform: translateY(-2px);
+        }
+
+        .nav-arrow {
+            position: fixed;
+            top: 50%;
+            transform: translateY(-50%);
+            background: rgba(255,255,255,0.25);
+            color: white;
+            width: 60px; height: 60px;
+            border-radius: 50%;
+            border: 2px solid rgba(255,255,255,0.4);
+            font-size: 24px;
+            cursor: pointer;
+            z-index: 9000;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .nav-arrow:hover {
+            background: rgba(255,255,255,0.5);
+            transform: translateY(-50%) scale(1.1);
+        }
+        .prev-arrow { left: 30px; }
+        .next-arrow { right: 30px; }
+        .nav-arrow:disabled { opacity: 0.3; cursor: not-allowed; }
+
+        .slide-container {
+            width: 100%;
+            height: 100vh;
+            padding-top: 60px;
+            position: relative;
+            z-index: 1;
+        }
+
+        .slide {
+            position: absolute;
+            top: 60px; left: 0;
+            width: 100%;
+            height: calc(100vh - 60px);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            padding: 40px;
+            opacity: 0;
+            transition: opacity 0.4s ease;
+            z-index: 10;
+        }
+
+        .slide.active {
+            display: flex;
+            opacity: 1;
+            z-index: 20;
+        }
+
+        .content-card {
+            background: rgba(255, 255, 255, 0.98);
+            border-radius: 24px;
+            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.3);
+            padding: 60px;
+            max-width: 1400px;
+            width: 95%;
+            max-height: 88vh;
+            overflow-y: auto;
+            position: relative;
+        }
+
+        h1 { color: #ea4335; font-size: 56px; margin-bottom: 24px; text-align: center; }
+        h2 { color: #fbbc04; font-size: 38px; margin-bottom: 35px; border-bottom: 3px solid #ea4335; padding-bottom: 12px; }
+        h3 { color: #ea4335; font-size: 26px; margin: 30px 0 15px 0; }
+        p, li { font-size: 20px; line-height: 1.8; color: #444; margin-bottom: 15px; }
+        code { background: #fff3cd; padding: 3px 8px; border-radius: 6px; font-family: monospace; color: #856404; font-weight: 600; font-size: 0.95em; }
+        pre { background: #282c34; color: #abb2bf; padding: 25px; border-radius: 12px; overflow-x: auto; margin: 25px 0; font-size: 16px; line-height: 1.6; font-family: monospace; white-space: pre-wrap; word-wrap: break-word; }
+
+        .box { padding: 25px; border-radius: 12px; margin: 25px 0; border-left: 6px solid; font-size: 20px; }
+        .info { background: #e3f2fd; border-color: #2196f3; color: #0d47a1; }
+        .warning { background: #fff3cd; border-color: #ffc107; color: #856404; }
+        .success { background: #d4edda; border-color: #28a745; color: #155724; }
+        .tip { background: #fff8e1; border-color: #ff9800; color: #e65100; }
+
+        .highlight { background: linear-gradient(120deg, #fbbc04 0%, #ea4335 100%); padding: 2px 8px; border-radius: 4px; font-weight: bold; color: white; }
+
+        .concept-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 25px; margin-top: 30px; }
+        .concept-card { background: #f8f9fa; padding: 25px; border-radius: 15px; border: 2px solid #e9ecef; transition: all 0.3s; }
+        .concept-card:hover { transform: translateY(-8px); border-color: #ea4335; box-shadow: 0 10px 30px rgba(234,67,53,0.2); }
+        .concept-card h4 { color: #ea4335; font-size: 22px; margin-bottom: 12px; }
+
+        .prompt-example { background: linear-gradient(135deg, #1a1a2e, #16213e); color: #e0e0e0; padding: 25px; border-radius: 15px; margin: 20px 0; border-left: 5px solid #fbbc04; }
+        .prompt-example h4 { color: #fbbc04; margin-bottom: 15px; }
+        .prompt-example p { color: #e0e0e0; font-size: 16px; line-height: 1.8; }
+
+        .quiz-container { background: linear-gradient(145deg, #ffffff, #f0f4f8); border: 2px solid #ea4335; border-radius: 20px; padding: 40px; margin: 30px 0; }
+        .quiz-btn { background: linear-gradient(90deg, #fbbc04, #ea4335); color: white; border: none; padding: 15px 40px; border-radius: 30px; font-size: 20px; font-weight: bold; cursor: pointer; margin-top: 20px; box-shadow: 0 5px 15px rgba(234,67,53,0.3); }
+        .quiz-btn:hover { transform: scale(1.05); }
+
+        .indicators { position: fixed; bottom: 25px; left: 50%; transform: translateX(-50%); display: flex; gap: 12px; z-index: 4000; padding: 10px 25px; background: rgba(0,0,0,0.3); border-radius: 30px; backdrop-filter: blur(5px); }
+        .dot { width: 12px; height: 12px; background: rgba(255,255,255,0.4); border-radius: 50%; cursor: pointer; transition: all 0.3s; }
+        .dot.active { background: #fbbc04; transform: scale(1.3); }
+
+        .slide.locked .content-card {
+            filter: blur(8px);
+            pointer-events: none;
+            user-select: none;
+        }
+
+        .unlock-overlay-container {
+            position: absolute;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            z-index: 50;
+            pointer-events: none;
+        }
+
+        .slide.locked .unlock-overlay-container {
+            display: flex;
+        }
+
+        .unlock-btn {
+            background: rgba(234, 67, 53, 0.95);
+            color: white;
+            border: 2px solid white;
+            padding: 15px 40px;
+            font-size: 24px;
+            border-radius: 50px;
+            cursor: pointer;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.4);
+            transition: transform 0.2s;
+            pointer-events: auto !important;
+        }
+        .unlock-btn:hover {
+            transform: scale(1.1);
+            background: #fbbc04;
+        }
+
+        .modal-overlay {
+            position: fixed;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            background: rgba(0,0,0,0.8);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 20000;
+            backdrop-filter: blur(5px);
+        }
+
+        .modal-box {
+            background: white;
+            padding: 40px;
+            border-radius: 20px;
+            text-align: center;
+            width: 90%;
+            max-width: 450px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.5);
+        }
+
+        .modal-input {
+            width: 100%;
+            padding: 15px;
+            font-size: 20px;
+            border: 2px solid #e0e0e0;
+            border-radius: 12px;
+            margin: 20px 0;
+            text-align: center;
+            outline: none;
+        }
+        .modal-input:focus { border-color: #ea4335; }
+
+        .modal-btn {
+            background: #ea4335;
+            color: white;
+            border: none;
+            padding: 12px 30px;
+            border-radius: 12px;
+            font-size: 18px;
+            cursor: pointer;
+            margin: 5px;
+        }
+
+        .step-list { counter-reset: step; list-style: none; padding-left: 0; }
+        .step-list li { position: relative; padding-left: 60px; margin-bottom: 25px; }
+        .step-list li::before {
+            counter-increment: step;
+            content: counter(step);
+            position: absolute;
+            left: 0;
+            top: 0;
+            width: 40px;
+            height: 40px;
+            background: linear-gradient(135deg, #fbbc04, #ea4335);
+            color: white;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            font-size: 18px;
+        }
+
+        table { width: 100%; border-collapse: collapse; margin: 20px 0; }
+        th, td { padding: 15px; text-align: left; border-bottom: 1px solid #e0e0e0; }
+        th { background: linear-gradient(135deg, #fbbc04, #ea4335); color: white; }
+        tr:hover { background: #fff8e1; }
+    </style>
+</head>
+<body>
+
+    <div class="nav-bar">
+        <div class="nav-title">Part 2 - 基礎操作與文字轉影片</div>
+        <div class="nav-buttons">
+            <a href="GoogleFlow_課程總覽.html" class="nav-btn">🏠 首頁</a>
+            <button class="nav-btn" onclick="toggleFullscreen()">🖥️ 全螢幕</button>
+            <a href="https://labs.google/flow/about" target="_blank" class="nav-btn">🔗 Flow</a>
+        </div>
+    </div>
+
+    <div class="slide-container">
+
+        <!-- Slide 1: 封面 -->
+        <div class="slide active">
+            <div class="content-card" style="text-align: center; display: flex; flex-direction: column; justify-content: center; align-items: center;">
+                <h4 style="color: #ea4335; letter-spacing: 2px; text-transform: uppercase; margin-bottom: 10px;">Google Flow Tutorial</h4>
+                <h1>Part 2: 基礎操作與文字轉影片</h1>
+                <h2 style="border: none; font-weight: normal; font-size: 28px; color: #666; max-width: 800px;">
+                    掌握 Text to Video 核心技巧
+                </h2>
+                <div style="margin-top: 40px; display: flex; gap: 20px; flex-wrap: wrap; justify-content: center;">
+                    <span class="highlight">Text to Video</span>
+                    <span class="highlight">Prompt 技巧</span>
+                    <span class="highlight">音訊生成</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Slide 2: 創建新專案 -->
+        <div class="slide">
+            <div class="content-card">
+                <h2>📂 創建新專案</h2>
+                <p>開始使用 Flow 的第一步是創建專案，讓我們一步步來：</p>
+
+                <ol class="step-list">
+                    <li>
+                        <strong>進入 Flow 主畫面</strong><br>
+                        登入後，你會看到專案總覽頁面
+                    </li>
+                    <li>
+                        <strong>點擊「New Project」</strong><br>
+                        位於畫面右上角或中央的建立按鈕
+                    </li>
+                    <li>
+                        <strong>為專案命名</strong><br>
+                        給專案一個容易辨識的名稱，方便後續管理
+                    </li>
+                    <li>
+                        <strong>選擇創作模式</strong><br>
+                        在底部提示框選擇「Text to Video」開始
+                    </li>
+                </ol>
+
+                <div class="box info">
+                    <strong>💡 提示：</strong> 建議為每個創作主題建立獨立專案，方便後續管理和迭代修改。
+                </div>
+            </div>
+        </div>
+
+        <!-- Slide 3: Text to Video 介紹 -->
+        <div class="slide">
+            <div class="content-card">
+                <h2>📝 Text to Video 功能介紹</h2>
+                <p>Text to Video 是 Flow 最核心的功能，讓你用文字描述直接生成影片。</p>
+
+                <div class="concept-grid">
+                    <div class="concept-card">
+                        <h4>🎬 基本原理</h4>
+                        <p>輸入英文描述，AI 根據文字內容生成對應的影片畫面和音訊。</p>
+                    </div>
+                    <div class="concept-card">
+                        <h4>🎵 Veo 3 音訊</h4>
+                        <p>支援原生音效生成，包括環境音、音樂、甚至角色對話。</p>
+                    </div>
+                    <div class="concept-card">
+                        <h4>⏱️ 影片長度</h4>
+                        <p>單次生成約 5-10 秒，可透過 Extend 功能延長至一分鐘以上。</p>
+                    </div>
+                </div>
+
+                <div class="box warning">
+                    <strong>⚠️ 注意：</strong> 目前 Flow 只接受<strong>英文</strong>提示詞，中文會影響生成效果。
+                </div>
+            </div>
+        </div>
+
+        <!-- Slide 4: 提示詞結構 -->
+        <div class="slide">
+            <div class="content-card">
+                <h2>🔤 提示詞結構五大要素</h2>
+                <p>撰寫好的提示詞需要涵蓋這五個關鍵要素：</p>
+
+                <table>
+                    <tr>
+                        <th>要素</th>
+                        <th>說明</th>
+                        <th>範例</th>
+                    </tr>
+                    <tr>
+                        <td><strong>Subject（主體）</strong></td>
+                        <td>影片中的主角或物件</td>
+                        <td>A young woman, a golden retriever</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Action（動作）</strong></td>
+                        <td>主體正在做什麼</td>
+                        <td>walking slowly, running through</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Environment（環境）</strong></td>
+                        <td>場景設定</td>
+                        <td>in a sunlit forest, on a busy street</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Lighting（光線）</strong></td>
+                        <td>光線條件</td>
+                        <td>golden hour lighting, soft natural light</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Style（風格）</strong></td>
+                        <td>視覺風格</td>
+                        <td>cinematic, photorealistic, 8K</td>
+                    </tr>
+                </table>
+            </div>
+        </div>
+
+        <!-- Slide 5: 運鏡描述 -->
+        <div class="slide">
+            <div class="content-card">
+                <h2>📹 運鏡與構圖描述</h2>
+                <p>專業的運鏡描述能讓生成的影片更具電影感：</p>
+
+                <div class="concept-grid">
+                    <div class="concept-card">
+                        <h4>🎯 鏡頭類型</h4>
+                        <ul>
+                            <li><code>wide shot</code> - 廣角鏡頭</li>
+                            <li><code>close-up</code> - 特寫</li>
+                            <li><code>medium shot</code> - 中景</li>
+                            <li><code>extreme close-up</code> - 極特寫</li>
+                        </ul>
+                    </div>
+                    <div class="concept-card">
+                        <h4>🎥 運鏡方式</h4>
+                        <ul>
+                            <li><code>tracking shot</code> - 追蹤鏡頭</li>
+                            <li><code>aerial view</code> - 空拍視角</li>
+                            <li><code>dolly in/out</code> - 推進/拉遠</li>
+                            <li><code>pan left/right</code> - 橫搖</li>
+                        </ul>
+                    </div>
+                    <div class="concept-card">
+                        <h4>🎬 視角設定</h4>
+                        <ul>
+                            <li><code>first-person POV</code> - 第一人稱</li>
+                            <li><code>bird's eye view</code> - 鳥瞰</li>
+                            <li><code>low angle</code> - 仰角</li>
+                            <li><code>over-the-shoulder</code> - 過肩</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Slide 6: 提示詞範例 1 -->
+        <div class="slide">
+            <div class="content-card">
+                <h2>💡 提示詞範例 - 自然風景</h2>
+
+                <div class="prompt-example">
+                    <h4>📝 範例提示詞</h4>
+                    <p>"A majestic waterfall cascading down mossy cliffs in a lush tropical rainforest. Mist rising from the pool below, sunlight filtering through the canopy creating god rays. Wide shot, slow pan right, cinematic quality, 8K resolution, ambient forest sounds with rushing water."</p>
+                </div>
+
+                <h3>🔍 提示詞分析</h3>
+                <ul>
+                    <li><strong>主體：</strong> majestic waterfall（壯觀的瀑布）</li>
+                    <li><strong>動作：</strong> cascading down（傾瀉而下）</li>
+                    <li><strong>環境：</strong> tropical rainforest, mossy cliffs（熱帶雨林、苔蘚岩壁）</li>
+                    <li><strong>光線：</strong> sunlight filtering, god rays（陽光穿透、丁達爾效應）</li>
+                    <li><strong>運鏡：</strong> wide shot, slow pan right（廣角、慢慢右搖）</li>
+                    <li><strong>音訊：</strong> ambient forest sounds, rushing water（森林環境音、流水聲）</li>
+                </ul>
+            </div>
+        </div>
+
+        <!-- Slide 7: 提示詞範例 2 -->
+        <div class="slide">
+            <div class="content-card">
+                <h2>💡 提示詞範例 - 都市場景</h2>
+
+                <div class="prompt-example">
+                    <h4>📝 範例提示詞</h4>
+                    <p>"First-person POV walking through neon-lit streets of Tokyo at night. Rain-soaked pavement reflecting colorful signs, crowds of people with umbrellas. Handheld camera movement, slight shake, cyberpunk aesthetic. Sound of rain, distant traffic, and Japanese pop music from nearby shops."</p>
+                </div>
+
+                <h3>🔍 提示詞分析</h3>
+                <ul>
+                    <li><strong>視角：</strong> First-person POV（第一人稱視角）</li>
+                    <li><strong>動作：</strong> walking through（穿越走過）</li>
+                    <li><strong>環境：</strong> neon-lit streets of Tokyo, rain-soaked pavement（霓虹燈東京街道、雨後路面）</li>
+                    <li><strong>風格：</strong> cyberpunk aesthetic（賽博龐克美學）</li>
+                    <li><strong>運鏡：</strong> Handheld, slight shake（手持、輕微晃動）</li>
+                    <li><strong>音訊：</strong> rain, traffic, Japanese pop music（雨聲、車流、日本流行音樂）</li>
+                </ul>
+            </div>
+        </div>
+
+        <!-- Slide 8: 音訊生成技巧 -->
+        <div class="slide">
+            <div class="content-card">
+                <h2>🎵 音訊生成技巧</h2>
+                <p>Veo 3 支援原生音訊生成，你可以在提示詞中描述想要的聲音：</p>
+
+                <div class="concept-grid">
+                    <div class="concept-card">
+                        <h4>🔊 環境音效</h4>
+                        <p>描述場景中的自然聲音</p>
+                        <code>birds chirping, wind rustling leaves, waves crashing</code>
+                    </div>
+                    <div class="concept-card">
+                        <h4>🎶 背景音樂</h4>
+                        <p>指定音樂風格或氛圍</p>
+                        <code>soft piano music, epic orchestral score, upbeat electronic</code>
+                    </div>
+                    <div class="concept-card">
+                        <h4>💬 對話與人聲</h4>
+                        <p>Text to Video 支援角色對話</p>
+                        <code>"Hello, welcome!" a cheerful voice says</code>
+                    </div>
+                    <div class="concept-card">
+                        <h4>🔇 無聲選項</h4>
+                        <p>如需無聲影片可標註</p>
+                        <code>silent video, no audio</code>
+                    </div>
+                </div>
+
+                <div class="box tip">
+                    <strong>🎯 Pro Tip：</strong> 音訊描述越具體，生成效果越好。例如「distant thunder」比單純「thunder」更能傳達空間感。
+                </div>
+            </div>
+        </div>
+
+        <!-- Slide 9: 生成與預覽 -->
+        <div class="slide">
+            <div class="content-card">
+                <h2>🎬 生成與預覽流程</h2>
+
+                <ol class="step-list">
+                    <li>
+                        <strong>輸入提示詞</strong><br>
+                        在底部文字框輸入你的英文描述
+                    </li>
+                    <li>
+                        <strong>點擊生成按鈕</strong><br>
+                        按下 Generate 開始 AI 運算
+                    </li>
+                    <li>
+                        <strong>等待生成</strong><br>
+                        通常需要 30 秒至數分鐘
+                    </li>
+                    <li>
+                        <strong>預覽結果</strong><br>
+                        生成完成後可以立即預覽影片
+                    </li>
+                    <li>
+                        <strong>迭代修改</strong><br>
+                        不滿意可調整提示詞重新生成
+                    </li>
+                </ol>
+
+                <div class="box info">
+                    <strong>💡 省積分技巧：</strong> 先用較短、較簡單的提示詞測試方向，確認風格後再加入更多細節。
+                </div>
+            </div>
+        </div>
+
+        <!-- Slide 10: 測驗 -->
+        <div class="slide">
+            <div class="content-card">
+                <h2>🧠 隨堂測驗</h2>
+                <div class="quiz-container">
+                    <p><strong>問題：</strong> 以下哪個提示詞結構最完整？</p>
+                    <ol style="margin: 20px 0;">
+                        <li>"A cat"</li>
+                        <li>"A fluffy orange cat sitting on a windowsill, afternoon sunlight, cozy atmosphere"</li>
+                        <li>"Cat video please"</li>
+                        <li>"貓咪在窗邊曬太陽"</li>
+                    </ol>
+                    <hr style="margin: 20px 0; border: none; border-top: 2px dashed #e0e0e0;">
+                    <button class="quiz-btn" onclick="openPasswordModal(10)">
+                        🔑 查看解答 (需要密碼)
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Slide 11: 測驗解答 -->
+        <div class="slide locked" id="slide-10">
+            <div class="content-card">
+                <h2>✅ 測驗解答</h2>
+                <div class="box success">
+                    <h3>答案：(2) "A fluffy orange cat sitting on a windowsill, afternoon sunlight, cozy atmosphere"</h3>
+                    <p style="margin-top: 15px;"><strong>解釋：</strong></p>
+                    <ul style="margin-top: 10px;">
+                        <li>(1) 太簡略，缺乏細節</li>
+                        <li>(2) ✅ 包含主體描述、動作、環境、光線、氛圍</li>
+                        <li>(3) 不是有效的提示詞格式</li>
+                        <li>(4) ❌ 中文無法被正確處理</li>
+                    </ul>
+                </div>
+            </div>
+            <div class="unlock-overlay-container">
+                <button class="unlock-btn" onclick="openPasswordModal(10)">🔓 點擊解鎖解答</button>
+            </div>
+        </div>
+
+        <!-- Slide 12: 總結 -->
+        <div class="slide">
+            <div class="content-card">
+                <h2>🎉 Part 2 總結</h2>
+                <p>你已經掌握了 Text to Video 的核心技巧！</p>
+
+                <div class="concept-grid">
+                    <div class="concept-card">
+                        <h4>專案管理</h4>
+                        <p>建立專案、命名、選擇創作模式</p>
+                    </div>
+                    <div class="concept-card">
+                        <h4>提示詞五要素</h4>
+                        <p>主體、動作、環境、光線、風格</p>
+                    </div>
+                    <div class="concept-card">
+                        <h4>運鏡描述</h4>
+                        <p>鏡頭類型、運鏡方式、視角設定</p>
+                    </div>
+                    <div class="concept-card">
+                        <h4>音訊生成</h4>
+                        <p>環境音、背景音樂、對話</p>
+                    </div>
+                </div>
+
+                <div class="box tip" style="margin-top: 30px; text-align: center;">
+                    <strong>👉 下一步：</strong> 前往 Part 3 學習 Frames to Video、Ingredients 等進階功能！
+                    <br><br>
+                    <a href="Part3_進階功能與創意技巧.html" style="display: inline-block; background: linear-gradient(90deg, #fbbc04, #ea4335); color: white; padding: 12px 30px; border-radius: 25px; text-decoration: none; font-weight: bold;">前往 Part 3 →</a>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <button class="nav-arrow prev-arrow" id="prevBtn" onclick="changeSlide(-1)">❮</button>
+    <button class="nav-arrow next-arrow" id="nextBtn" onclick="changeSlide(1)">❯</button>
+
+    <div class="indicators" id="indicatorContainer"></div>
+
+    <div class="modal-overlay" id="passwordModal">
+        <div class="modal-box">
+            <h2 style="color: #ea4335; margin-bottom: 10px;">🔒 解鎖解答</h2>
+            <p style="color: #666;">請輸入密碼以查看隱藏內容</p>
+            <input type="password" class="modal-input" id="passwordInput" placeholder="請輸入密碼" autocomplete="off">
+            <div style="display: flex; justify-content: center; gap: 10px;">
+                <button class="modal-btn" onclick="verifyPassword()">確認</button>
+                <button class="modal-btn" style="background: #999;" onclick="closeModal()">取消</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let currentSlide = 0;
+        const slides = document.querySelectorAll('.slide');
+        const totalSlides = slides.length;
+        let unlockedSlides = new Set();
+        let pendingUnlockIndex = -1;
+        const CORRECT_PASSWORD = "0207";
+
+        function init() {
+            createIndicators();
+            showSlide(0);
+            updateButtons();
+            document.addEventListener('keydown', handleKeydown);
+        }
+
+        function handleKeydown(e) {
+            if (e.key === 'ArrowLeft') changeSlide(-1);
+            if (e.key === 'ArrowRight') changeSlide(1);
+            if (e.key === 'Enter' && document.getElementById('passwordModal').style.display === 'flex') {
+                verifyPassword();
+            }
+        }
+
+        function createIndicators() {
+            const container = document.getElementById('indicatorContainer');
+            container.innerHTML = '';
+            slides.forEach((_, index) => {
+                const dot = document.createElement('div');
+                dot.className = 'dot';
+                dot.onclick = () => goToSlide(index);
+                container.appendChild(dot);
+            });
+        }
+
+        function showSlide(index) {
+            if (index < 0) index = 0;
+            if (index >= totalSlides) index = totalSlides - 1;
+
+            slides.forEach(slide => slide.classList.remove('active'));
+            slides[index].classList.add('active');
+
+            if (slides[index].classList.contains('locked') && !unlockedSlides.has(index)) {
+            } else {
+                slides[index].classList.remove('locked');
+            }
+
+            currentSlide = index;
+
+            const dots = document.querySelectorAll('.dot');
+            dots.forEach((dot, idx) => {
+                dot.classList.toggle('active', idx === index);
+            });
+
+            updateButtons();
+        }
+
+        function changeSlide(direction) {
+            showSlide(currentSlide + direction);
+        }
+
+        function goToSlide(index) {
+            showSlide(index);
+        }
+
+        function updateButtons() {
+            document.getElementById('prevBtn').disabled = currentSlide === 0;
+            document.getElementById('nextBtn').disabled = currentSlide === totalSlides - 1;
+        }
+
+        function toggleFullscreen() {
+            if (!document.fullscreenElement) {
+                document.documentElement.requestFullscreen();
+            } else {
+                if (document.exitFullscreen) {
+                    document.exitFullscreen();
+                }
+            }
+        }
+
+        function openPasswordModal(targetIndex) {
+            pendingUnlockIndex = targetIndex;
+            const modal = document.getElementById('passwordModal');
+            const input = document.getElementById('passwordInput');
+            modal.style.display = 'flex';
+            input.value = '';
+            input.focus();
+        }
+
+        function closeModal() {
+            document.getElementById('passwordModal').style.display = 'none';
+        }
+
+        function verifyPassword() {
+            const input = document.getElementById('passwordInput');
+            if (input.value === CORRECT_PASSWORD) {
+                unlockedSlides.add(pendingUnlockIndex);
+                if (currentSlide === pendingUnlockIndex) {
+                    slides[currentSlide].classList.remove('locked');
+                } else {
+                    showSlide(pendingUnlockIndex);
+                }
+                closeModal();
+            } else {
+                alert("❌ 密碼錯誤！請輸入 0207");
+                input.value = '';
+                input.focus();
+            }
+        }
+
+        init();
+    </script>
+</body>
+</html>

@@ -1,0 +1,548 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Part 4 - 自拍與電影風格製作</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Microsoft JhengHei', 'Segoe UI', Arial, sans-serif;
+            background: linear-gradient(135deg, #ea4335 0%, #fbbc04 100%);
+            min-height: 100vh;
+            overflow: hidden;
+            color: #333;
+        }
+
+        .nav-bar {
+            position: fixed;
+            top: 0; left: 0; right: 0;
+            height: 60px;
+            background: rgba(255, 255, 255, 0.15);
+            backdrop-filter: blur(12px);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0 30px;
+            z-index: 10000;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+
+        .nav-title {
+            font-size: 22px;
+            font-weight: 700;
+            color: #fff;
+            letter-spacing: 1px;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.2);
+        }
+
+        .nav-buttons { display: flex; gap: 12px; }
+
+        .nav-btn {
+            background: rgba(255, 255, 255, 0.2);
+            border: 1px solid rgba(255, 255, 255, 0.4);
+            color: white;
+            padding: 6px 16px;
+            border-radius: 20px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 600;
+            text-decoration: none;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .nav-btn:hover {
+            background: rgba(255, 255, 255, 0.4);
+            transform: translateY(-2px);
+        }
+
+        .nav-arrow {
+            position: fixed;
+            top: 50%;
+            transform: translateY(-50%);
+            background: rgba(255,255,255,0.25);
+            color: white;
+            width: 60px; height: 60px;
+            border-radius: 50%;
+            border: 2px solid rgba(255,255,255,0.4);
+            font-size: 24px;
+            cursor: pointer;
+            z-index: 9000;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .nav-arrow:hover {
+            background: rgba(255,255,255,0.5);
+            transform: translateY(-50%) scale(1.1);
+        }
+        .prev-arrow { left: 30px; }
+        .next-arrow { right: 30px; }
+        .nav-arrow:disabled { opacity: 0.3; cursor: not-allowed; }
+
+        .slide-container {
+            width: 100%;
+            height: 100vh;
+            padding-top: 60px;
+            position: relative;
+            z-index: 1;
+        }
+
+        .slide {
+            position: absolute;
+            top: 60px; left: 0;
+            width: 100%;
+            height: calc(100vh - 60px);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            padding: 40px;
+            opacity: 0;
+            transition: opacity 0.4s ease;
+            z-index: 10;
+        }
+
+        .slide.active {
+            display: flex;
+            opacity: 1;
+            z-index: 20;
+        }
+
+        .content-card {
+            background: rgba(255, 255, 255, 0.98);
+            border-radius: 24px;
+            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.3);
+            padding: 60px;
+            max-width: 1400px;
+            width: 95%;
+            max-height: 88vh;
+            overflow-y: auto;
+            position: relative;
+        }
+
+        h1 { color: #ea4335; font-size: 56px; margin-bottom: 24px; text-align: center; }
+        h2 { color: #ea4335; font-size: 38px; margin-bottom: 35px; border-bottom: 3px solid #fbbc04; padding-bottom: 12px; }
+        h3 { color: #ea4335; font-size: 26px; margin: 30px 0 15px 0; }
+        p, li { font-size: 20px; line-height: 1.8; color: #444; margin-bottom: 15px; }
+        code { background: #ffebee; padding: 3px 8px; border-radius: 6px; font-family: monospace; color: #c62828; font-weight: 600; font-size: 0.95em; }
+
+        .box { padding: 25px; border-radius: 12px; margin: 25px 0; border-left: 6px solid; font-size: 20px; }
+        .info { background: #e3f2fd; border-color: #2196f3; color: #0d47a1; }
+        .warning { background: #fff3cd; border-color: #ffc107; color: #856404; }
+        .success { background: #d4edda; border-color: #28a745; color: #155724; }
+        .movie { background: linear-gradient(135deg, #1a1a2e, #16213e); border-color: #fbbc04; color: #e0e0e0; }
+
+        .highlight { background: linear-gradient(120deg, #ea4335 0%, #fbbc04 100%); padding: 2px 8px; border-radius: 4px; font-weight: bold; color: white; }
+
+        .concept-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 25px; margin-top: 30px; }
+        .concept-card { background: #f8f9fa; padding: 25px; border-radius: 15px; border: 2px solid #e9ecef; transition: all 0.3s; }
+        .concept-card:hover { transform: translateY(-8px); border-color: #ea4335; box-shadow: 0 10px 30px rgba(234,67,53,0.2); }
+        .concept-card h4 { color: #ea4335; font-size: 22px; margin-bottom: 12px; }
+
+        .prompt-box { background: linear-gradient(135deg, #1a1a2e, #16213e); color: #e0e0e0; padding: 25px; border-radius: 15px; margin: 20px 0; border-left: 5px solid #fbbc04; font-family: monospace; font-size: 14px; line-height: 1.8; white-space: pre-wrap; word-wrap: break-word; }
+        .prompt-box .label { color: #fbbc04; font-weight: bold; margin-bottom: 10px; display: block; font-family: 'Microsoft JhengHei', sans-serif; font-size: 16px; }
+
+        .style-card { background: linear-gradient(135deg, #fff, #f8f9fa); padding: 30px; border-radius: 20px; margin: 25px 0; border: 2px solid #ea4335; }
+        .style-card h3 { color: #ea4335; margin-bottom: 15px; }
+        .style-card .description { color: #666; font-size: 16px; margin-bottom: 20px; }
+
+        .quiz-container { background: linear-gradient(145deg, #ffffff, #f0f4f8); border: 2px solid #ea4335; border-radius: 20px; padding: 40px; margin: 30px 0; }
+        .quiz-btn { background: linear-gradient(90deg, #ea4335, #fbbc04); color: white; border: none; padding: 15px 40px; border-radius: 30px; font-size: 20px; font-weight: bold; cursor: pointer; margin-top: 20px; box-shadow: 0 5px 15px rgba(234,67,53,0.3); }
+        .quiz-btn:hover { transform: scale(1.05); }
+
+        .indicators { position: fixed; bottom: 25px; left: 50%; transform: translateX(-50%); display: flex; gap: 12px; z-index: 4000; padding: 10px 25px; background: rgba(0,0,0,0.3); border-radius: 30px; backdrop-filter: blur(5px); }
+        .dot { width: 12px; height: 12px; background: rgba(255,255,255,0.4); border-radius: 50%; cursor: pointer; transition: all 0.3s; }
+        .dot.active { background: #fbbc04; transform: scale(1.3); }
+
+        .slide.locked .content-card { filter: blur(8px); pointer-events: none; user-select: none; }
+        .unlock-overlay-container { position: absolute; top: 0; left: 0; width: 100%; height: 100%; display: none; flex-direction: column; align-items: center; justify-content: center; z-index: 50; pointer-events: none; }
+        .slide.locked .unlock-overlay-container { display: flex; }
+        .unlock-btn { background: rgba(234, 67, 53, 0.95); color: white; border: 2px solid white; padding: 15px 40px; font-size: 24px; border-radius: 50px; cursor: pointer; box-shadow: 0 10px 30px rgba(0,0,0,0.4); transition: transform 0.2s; pointer-events: auto !important; }
+        .unlock-btn:hover { transform: scale(1.1); background: #fbbc04; }
+
+        .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); display: none; align-items: center; justify-content: center; z-index: 20000; backdrop-filter: blur(5px); }
+        .modal-box { background: white; padding: 40px; border-radius: 20px; text-align: center; width: 90%; max-width: 450px; box-shadow: 0 20px 60px rgba(0,0,0,0.5); }
+        .modal-input { width: 100%; padding: 15px; font-size: 20px; border: 2px solid #e0e0e0; border-radius: 12px; margin: 20px 0; text-align: center; outline: none; }
+        .modal-input:focus { border-color: #ea4335; }
+        .modal-btn { background: #ea4335; color: white; border: none; padding: 12px 30px; border-radius: 12px; font-size: 18px; cursor: pointer; margin: 5px; }
+
+        .step-list { counter-reset: step; list-style: none; padding-left: 0; }
+        .step-list li { position: relative; padding-left: 60px; margin-bottom: 25px; }
+        .step-list li::before { counter-increment: step; content: counter(step); position: absolute; left: 0; top: 0; width: 40px; height: 40px; background: linear-gradient(135deg, #ea4335, #fbbc04); color: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 18px; }
+
+        .badge { display: inline-block; padding: 5px 15px; border-radius: 20px; font-size: 14px; font-weight: bold; margin-right: 10px; }
+        .badge-vip { background: #ffd700; color: #333; }
+        .badge-action { background: #e53935; color: white; }
+        .badge-cinema { background: #7c4dff; color: white; }
+    </style>
+</head>
+<body>
+
+    <div class="nav-bar">
+        <div class="nav-title">Part 4 - 自拍與電影風格製作</div>
+        <div class="nav-buttons">
+            <a href="GoogleFlow_課程總覽.html" class="nav-btn">🏠 首頁</a>
+            <button class="nav-btn" onclick="toggleFullscreen()">🖥️ 全螢幕</button>
+            <a href="https://labs.google/flow/about" target="_blank" class="nav-btn">🔗 Flow</a>
+        </div>
+    </div>
+
+    <div class="slide-container">
+
+        <!-- Slide 1: 封面 -->
+        <div class="slide active">
+            <div class="content-card" style="text-align: center; display: flex; flex-direction: column; justify-content: center; align-items: center;">
+                <h4 style="color: #ea4335; letter-spacing: 2px; text-transform: uppercase; margin-bottom: 10px;">Google Flow Tutorial</h4>
+                <h1>Part 4: 自拍與電影風格製作</h1>
+                <h2 style="border: none; font-weight: normal; font-size: 28px; color: #666; max-width: 800px;">
+                    創造電影幕後自拍與專業運鏡效果
+                </h2>
+                <div style="margin-top: 40px; display: flex; gap: 20px; flex-wrap: wrap; justify-content: center;">
+                    <span class="highlight">電影自拍</span>
+                    <span class="highlight">運鏡過渡</span>
+                    <span class="highlight">場景轉換</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Slide 2: 電影幕後自拍介紹 -->
+        <div class="slide">
+            <div class="content-card">
+                <h2>🎬 電影幕後自拍風格</h2>
+                <p>創造「我在電影拍攝現場與明星合照」的逼真效果，這是 Flow 最受歡迎的創意應用之一。</p>
+
+                <div class="concept-grid">
+                    <div class="concept-card">
+                        <h4>📱 POV 自拍視角</h4>
+                        <p>使用 First-person POV（第一人稱視角）模擬手機自拍的畫面。</p>
+                    </div>
+                    <div class="concept-card">
+                        <h4>🎥 片場元素</h4>
+                        <p>加入攝影機、燈光設備、工作人員等專業電影製作元素。</p>
+                    </div>
+                    <div class="concept-card">
+                        <h4>🌟 明星互動</h4>
+                        <p>描述與特定角色或明星造型人物的互動場景。</p>
+                    </div>
+                </div>
+
+                <div class="box movie">
+                    <strong>🎯 核心技巧：</strong> 使用 Ingredients to Video 功能上傳你的照片，確保生成影片中的「你」保持一致的外觀。
+                </div>
+            </div>
+        </div>
+
+        <!-- Slide 3: 自拍提示詞模板 -->
+        <div class="slide">
+            <div class="content-card">
+                <h2>📝 電影自拍提示詞模板</h2>
+                <p>以下是經過優化的電影幕後自拍提示詞模板：</p>
+
+                <div class="prompt-box">
+                    <span class="label">🎬 電影自拍 Prompt 模板</span>
+"A point-of-view selfie photograph taken by a fan holding up a smartphone on the bustling filming set of the movie [電影英文名稱]. The fan is smiling next to [明星英文姓名], who is dressed in detailed costume for [電影英文名稱]. The background is cluttered with professional film cameras, large lighting rigs, cables, crew members working, and movie props. Natural set lighting, photorealistic, highly detailed, 8k."
+                </div>
+
+                <h3>🔧 模板變數說明</h3>
+                <ul>
+                    <li><code>[電影英文名稱]</code> - 填入電影名稱，如 "Avengers: Endgame"</li>
+                    <li><code>[明星英文姓名]</code> - 填入明星名字，如 "Robert Downey Jr."</li>
+                </ul>
+
+                <div class="box info">
+                    <strong>💡 提示：</strong> 上傳 4 張不同角度的個人照片作為 Ingredients，可以讓 AI 更準確地抓住你的人像特徵。
+                </div>
+            </div>
+        </div>
+
+        <!-- Slide 4: 自拍風格描述 -->
+        <div class="slide">
+            <div class="content-card">
+                <h2>🎨 自拍場景細節描述</h2>
+                <p>豐富的場景描述可以讓生成結果更加真實：</p>
+
+                <div class="prompt-box">
+                    <span class="label">📸 詳細場景描述範例</span>
+一張寫實、電影感的幕後一起自拍照片。
+圖1 西裝男,在圖2電影【復仇者聯盟】拍攝現場跟演員一起自拍，電影燈光柔光箱、反光板、攝影機架在三腳架上、地面鋪設攝影滑軌，收音桿麥克風從畫面上方伸入，工作人員正在忙碌調整設備。
+白天自然光結合專業電影燈光，真實膚質、自然陰影，景深明確，前景人物清晰、背景微虛化。
+圖片格式 9:16
+                </div>
+
+                <div class="concept-grid">
+                    <div class="concept-card">
+                        <h4>💡 燈光設備</h4>
+                        <p>柔光箱、反光板、專業電影燈光</p>
+                    </div>
+                    <div class="concept-card">
+                        <h4>📹 攝影器材</h4>
+                        <p>攝影機、三腳架、攝影滑軌</p>
+                    </div>
+                    <div class="concept-card">
+                        <h4>🎤 收音設備</h4>
+                        <p>收音桿麥克風、無線麥克風</p>
+                    </div>
+                    <div class="concept-card">
+                        <h4>👷 工作人員</h4>
+                        <p>忙碌的劇組人員、導演、燈光師</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Slide 5: 運鏡過渡 - 走廊穿越 -->
+        <div class="slide">
+            <div class="content-card">
+                <h2>🚶 運鏡過渡：走廊穿越</h2>
+                <p>創造從一個片場走到另一個片場的過渡影片，非常適合連接不同場景的自拍照。</p>
+
+                <div class="prompt-box">
+                    <span class="label">🎬 走廊穿越 Prompt</span>
+"First-person POV, holding a smartphone. The camera turns away from the first location and begins walking briskly through a busy movie studio backstage corridor. Moving past equipment, lighting rigs, cables, and crew members. The movement continues continuously until approaching the second different film set location. Handheld shakiness."
+                </div>
+
+                <div class="box success">
+                    <strong>🎯 使用方式：</strong>
+                    <ol style="margin-top: 10px;">
+                        <li>準備 A、B 兩張不同場景的自拍照</li>
+                        <li>使用 Frames to Video 功能</li>
+                        <li>搭配這段走廊穿越提示詞</li>
+                        <li>AI 會生成「從 A 場景走到 B 場景」的過渡影片</li>
+                    </ol>
+                </div>
+            </div>
+        </div>
+
+        <!-- Slide 6: 運鏡風格 1 - VIP 風格 -->
+        <div class="slide">
+            <div class="content-card">
+                <h2>🏎️ 運鏡風格 1：VIP 高爾夫球車</h2>
+                <p><span class="badge badge-vip">VIP 風格</span> 搭乘片場高爾夫球車移動，展現大牌明星的氣派！</p>
+
+                <div class="style-card">
+                    <h3>🎯 情境說明</h3>
+                    <p class="description">片場很大，大明星或劇組人員通常會搭這種小車移動。這會讓影片看起來有速度感，而且感覺你很「大牌」。</p>
+                    <p><strong>視覺效果：</strong> 視角坐在車上，風在吹，景物快速向後退，經過其他大樓或拖車。</p>
+                </div>
+
+                <div class="prompt-box">
+                    <span class="label">🚗 VIP 高爾夫球車 Prompt</span>
+"First-person POV riding on a moving studio golf cart. Driving fast through the movie studio lot. Wind blowing, passing by production trucks, trailers, and crew members. Smooth vehicular movement, sunny outdoor studio environment."
+                </div>
+
+                <div class="box info">
+                    <strong>中文翻譯：</strong> 第一人稱視角，乘坐行駛中的片場高爾夫球車。在電影製片廠區快速行駛。風在吹，經過製作卡車、拖車和工作人員。平滑的車輛移動感，陽光充足的戶外片場環境。
+                </div>
+            </div>
+        </div>
+
+        <!-- Slide 7: 運鏡風格 2 - 逃跑風格 -->
+        <div class="slide">
+            <div class="content-card">
+                <h2>🏃 運鏡風格 2：緊張逃跑</h2>
+                <p><span class="badge badge-action">動作風格</span> 假裝混進片場被發現，要趕快「逃跑」！</p>
+
+                <div class="style-card">
+                    <h3>🎯 情境說明</h3>
+                    <p class="description">假裝你是混進去的，剛拍完照被發現了，所以要「跑」去下一個片場。這會增加很多趣味和臨場感。</p>
+                    <p><strong>視覺效果：</strong> 鏡頭劇烈晃動（Running shake），呼吸急促感，快速穿過雜物區。</p>
+                </div>
+
+                <div class="prompt-box">
+                    <span class="label">🏃 逃跑風格 Prompt</span>
+"POV running fast, escaping from security. Heavy camera shake, breathless rhythm. Sprinting through a narrow backstage corridor with cables and boxes. Blurred motion, high speed, chaotic energy, rushing to the next hideout."
+                </div>
+
+                <div class="box info">
+                    <strong>中文翻譯：</strong> 第一人稱視角快速奔跑，逃離保全。強烈的鏡頭晃動，氣喘吁吁的節奏。衝過充滿電纜和箱子的狹窄後台走廊。動態模糊，高速，混亂的能量，衝向下一個藏身處。
+                </div>
+            </div>
+        </div>
+
+        <!-- Slide 8: 運鏡風格 3 - 電影甩鏡 -->
+        <div class="slide">
+            <div class="content-card">
+                <h2>🌀 運鏡風格 3：急速甩鏡轉場</h2>
+                <p><span class="badge badge-cinema">電影級</span> 最炫的技巧！透過快速旋轉實現無縫場景轉換。</p>
+
+                <div class="style-card">
+                    <h3>🎯 情境說明</h3>
+                    <p class="description">這是最炫的技巧。不需要走路過程，而是透過快速旋轉身體，讓背景變成一團模糊，停下來時就已經到下一個片場了。</p>
+                    <p><strong>視覺效果：</strong> 畫面快速旋轉，看不清背景，只有強烈的速度線。非常適合連接光線差異很大的場景（例如從暗的蝙蝠洞轉到亮的海灘）。</p>
+                </div>
+
+                <div class="prompt-box">
+                    <span class="label">🌀 甩鏡轉場 Prompt</span>
+"Fast chaotic camera movement. The camera spins around quickly 360 degrees. Heavy motion blur, streak lines, unidentifiable background due to speed. A seamless whip-pan transition effect between locations."
+                </div>
+
+                <div class="box info">
+                    <strong>中文翻譯：</strong> 快速混亂的運鏡。相機快速旋轉 360 度。強烈的動態模糊、線條感，因速度過快而無法辨識背景。地點之間無縫的甩鏡轉場效果。
+                </div>
+            </div>
+        </div>
+
+        <!-- Slide 9: 人像一致性技巧 -->
+        <div class="slide">
+            <div class="content-card">
+                <h2>👤 人像一致性技巧</h2>
+                <p>確保生成影片中的「你」看起來一致，是自拍效果成功的關鍵。</p>
+
+                <ol class="step-list">
+                    <li>
+                        <strong>準備 4 張不同角度的照片</strong><br>
+                        正面、左側、右側、45度角，讓 AI 更完整地理解你的外觀
+                    </li>
+                    <li>
+                        <strong>使用 Ingredients to Video</strong><br>
+                        將照片作為角色參考上傳
+                    </li>
+                    <li>
+                        <strong>保持光線一致</strong><br>
+                        參考照片的光線條件盡量接近
+                    </li>
+                    <li>
+                        <strong>清晰的臉部特徵</strong><br>
+                        避免使用模糊或遮擋臉部的照片
+                    </li>
+                </ol>
+
+                <div class="box warning">
+                    <strong>⚠️ 注意：</strong> 目前 AI 對人像一致性的處理仍有限制，多次生成可能會有些微差異，這是正常現象。
+                </div>
+            </div>
+        </div>
+
+        <!-- Slide 10: 測驗 -->
+        <div class="slide">
+            <div class="content-card">
+                <h2>🧠 隨堂測驗</h2>
+                <div class="quiz-container">
+                    <p><strong>問題：</strong> 如果你要創造從「蝙蝠俠片場」到「海灘電影片場」的過渡，光線差異很大，最適合使用哪種運鏡風格？</p>
+                    <ol style="margin: 20px 0;">
+                        <li>VIP 高爾夫球車風格</li>
+                        <li>走廊穿越風格</li>
+                        <li>急速甩鏡轉場（Whip Pan）</li>
+                        <li>逃跑風格</li>
+                    </ol>
+                    <hr style="margin: 20px 0; border: none; border-top: 2px dashed #e0e0e0;">
+                    <button class="quiz-btn" onclick="openPasswordModal(10)">
+                        🔑 查看解答 (需要密碼)
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Slide 11: 測驗解答 -->
+        <div class="slide locked" id="slide-10">
+            <div class="content-card">
+                <h2>✅ 測驗解答</h2>
+                <div class="box success">
+                    <h3>答案：(3) 急速甩鏡轉場（Whip Pan）</h3>
+                    <p style="margin-top: 15px;"><strong>解釋：</strong></p>
+                    <ul style="margin-top: 10px;">
+                        <li>蝙蝠俠片場（暗）和海灘片場（亮）光線差異很大</li>
+                        <li>甩鏡轉場的動態模糊可以自然地「隱藏」這個光線轉換</li>
+                        <li>360度快速旋轉讓觀眾無法注意到場景的突然變化</li>
+                        <li>這是電影中常用的專業轉場技巧</li>
+                    </ul>
+                </div>
+            </div>
+            <div class="unlock-overlay-container">
+                <button class="unlock-btn" onclick="openPasswordModal(10)">🔓 點擊解鎖解答</button>
+            </div>
+        </div>
+
+        <!-- Slide 12: 總結 -->
+        <div class="slide">
+            <div class="content-card">
+                <h2>🎉 Part 4 總結</h2>
+                <p>你已經學會創造電影級自拍和專業運鏡效果！</p>
+
+                <div class="concept-grid">
+                    <div class="concept-card">
+                        <h4>電影自拍</h4>
+                        <p>POV 視角 + 片場元素 + Ingredients</p>
+                    </div>
+                    <div class="concept-card">
+                        <h4>走廊穿越</h4>
+                        <p>連接不同場景的基礎過渡</p>
+                    </div>
+                    <div class="concept-card">
+                        <h4>VIP 風格</h4>
+                        <p>高爾夫球車移動，大牌氣派</p>
+                    </div>
+                    <div class="concept-card">
+                        <h4>逃跑風格</h4>
+                        <p>劇烈晃動，緊張刺激</p>
+                    </div>
+                    <div class="concept-card">
+                        <h4>甩鏡轉場</h4>
+                        <p>360度旋轉，無縫場景轉換</p>
+                    </div>
+                    <div class="concept-card">
+                        <h4>人像一致性</h4>
+                        <p>4張不同角度照片作為參考</p>
+                    </div>
+                </div>
+
+                <div class="box movie" style="margin-top: 30px; text-align: center;">
+                    <strong>👉 下一步：</strong> 前往 Part 5 學習完整的實戰工作流程！
+                    <br><br>
+                    <a href="Part5_實戰案例與應用.html" style="display: inline-block; background: linear-gradient(90deg, #ea4335, #fbbc04); color: white; padding: 12px 30px; border-radius: 25px; text-decoration: none; font-weight: bold;">前往 Part 5 →</a>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <button class="nav-arrow prev-arrow" id="prevBtn" onclick="changeSlide(-1)">❮</button>
+    <button class="nav-arrow next-arrow" id="nextBtn" onclick="changeSlide(1)">❯</button>
+
+    <div class="indicators" id="indicatorContainer"></div>
+
+    <div class="modal-overlay" id="passwordModal">
+        <div class="modal-box">
+            <h2 style="color: #ea4335; margin-bottom: 10px;">🔒 解鎖解答</h2>
+            <p style="color: #666;">請輸入密碼以查看隱藏內容</p>
+            <input type="password" class="modal-input" id="passwordInput" placeholder="請輸入密碼" autocomplete="off">
+            <div style="display: flex; justify-content: center; gap: 10px;">
+                <button class="modal-btn" onclick="verifyPassword()">確認</button>
+                <button class="modal-btn" style="background: #999;" onclick="closeModal()">取消</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let currentSlide = 0;
+        const slides = document.querySelectorAll('.slide');
+        const totalSlides = slides.length;
+        let unlockedSlides = new Set();
+        let pendingUnlockIndex = -1;
+        const CORRECT_PASSWORD = "0207";
+
+        function init() { createIndicators(); showSlide(0); updateButtons(); document.addEventListener('keydown', handleKeydown); }
+        function handleKeydown(e) { if (e.key === 'ArrowLeft') changeSlide(-1); if (e.key === 'ArrowRight') changeSlide(1); if (e.key === 'Enter' && document.getElementById('passwordModal').style.display === 'flex') { verifyPassword(); } }
+        function createIndicators() { const container = document.getElementById('indicatorContainer'); container.innerHTML = ''; slides.forEach((_, index) => { const dot = document.createElement('div'); dot.className = 'dot'; dot.onclick = () => goToSlide(index); container.appendChild(dot); }); }
+        function showSlide(index) { if (index < 0) index = 0; if (index >= totalSlides) index = totalSlides - 1; slides.forEach(slide => slide.classList.remove('active')); slides[index].classList.add('active'); if (slides[index].classList.contains('locked') && !unlockedSlides.has(index)) { } else { slides[index].classList.remove('locked'); } currentSlide = index; const dots = document.querySelectorAll('.dot'); dots.forEach((dot, idx) => { dot.classList.toggle('active', idx === index); }); updateButtons(); }
+        function changeSlide(direction) { showSlide(currentSlide + direction); }
+        function goToSlide(index) { showSlide(index); }
+        function updateButtons() { document.getElementById('prevBtn').disabled = currentSlide === 0; document.getElementById('nextBtn').disabled = currentSlide === totalSlides - 1; }
+        function toggleFullscreen() { if (!document.fullscreenElement) { document.documentElement.requestFullscreen(); } else { if (document.exitFullscreen) { document.exitFullscreen(); } } }
+        function openPasswordModal(targetIndex) { pendingUnlockIndex = targetIndex; const modal = document.getElementById('passwordModal'); const input = document.getElementById('passwordInput'); modal.style.display = 'flex'; input.value = ''; input.focus(); }
+        function closeModal() { document.getElementById('passwordModal').style.display = 'none'; }
+        function verifyPassword() { const input = document.getElementById('passwordInput'); if (input.value === CORRECT_PASSWORD) { unlockedSlides.add(pendingUnlockIndex); if (currentSlide === pendingUnlockIndex) { slides[currentSlide].classList.remove('locked'); } else { showSlide(pendingUnlockIndex); } closeModal(); } else { alert("❌ 密碼錯誤！請輸入 0207"); input.value = ''; input.focus(); } }
+        init();
+    </script>
+</body>
+</html>
