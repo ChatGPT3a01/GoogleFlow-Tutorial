@@ -1,5 +1,9 @@
 # Google Flow AI 影片創作完整教學
 
+### [:arrow_forward: 點擊開啟簡報](https://chatgpt3a01.github.io/GoogleFlow-Tutorial/GoogleFlow_課程總覽.html)
+
+---
+
 ![Google Flow](https://img.shields.io/badge/Google-Flow-4285f4?style=for-the-badge&logo=google&logoColor=white)
 ![Veo 3.1](https://img.shields.io/badge/Veo-3.1-34a853?style=for-the-badge)
 ![License](https://img.shields.io/badge/License-MIT-yellow?style=for-the-badge)
