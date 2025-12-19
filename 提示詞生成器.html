@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Flow 提示詞生成器</title>
+    <title>Flow 提示詞生成器 Pro</title>
     <style>
         * {
             margin: 0;
@@ -19,42 +19,43 @@
         }
 
         .container {
-            max-width: 1200px;
+            max-width: 1400px;
             margin: 0 auto;
         }
 
         .header {
             text-align: center;
             color: white;
-            margin-bottom: 30px;
+            margin-bottom: 25px;
         }
 
         .header h1 {
-            font-size: 42px;
-            margin-bottom: 10px;
+            font-size: 38px;
+            margin-bottom: 8px;
             text-shadow: 0 2px 4px rgba(0,0,0,0.3);
         }
 
         .header p {
-            font-size: 18px;
+            font-size: 16px;
             opacity: 0.9;
         }
 
         .nav-links {
             display: flex;
             justify-content: center;
-            gap: 15px;
-            margin-top: 20px;
+            gap: 12px;
+            margin-top: 15px;
             flex-wrap: wrap;
         }
 
         .nav-link {
             background: rgba(255,255,255,0.2);
             color: white;
-            padding: 10px 25px;
-            border-radius: 25px;
+            padding: 8px 20px;
+            border-radius: 20px;
             text-decoration: none;
             font-weight: 600;
+            font-size: 14px;
             transition: all 0.3s;
         }
 
@@ -65,67 +66,73 @@
 
         .main-card {
             background: white;
-            border-radius: 25px;
-            padding: 40px;
+            border-radius: 20px;
+            padding: 30px;
             box-shadow: 0 20px 60px rgba(0,0,0,0.3);
         }
 
-        .type-selector {
+        /* Tabs */
+        .tabs {
             display: flex;
-            gap: 20px;
-            margin-bottom: 30px;
+            gap: 10px;
+            margin-bottom: 25px;
+            flex-wrap: wrap;
             justify-content: center;
         }
 
-        .type-btn {
-            padding: 15px 40px;
-            font-size: 18px;
+        .tab-btn {
+            padding: 12px 25px;
+            font-size: 16px;
             font-weight: bold;
-            border: 3px solid #667eea;
+            border: 2px solid #667eea;
             background: white;
             color: #667eea;
-            border-radius: 50px;
+            border-radius: 30px;
             cursor: pointer;
             transition: all 0.3s;
         }
 
-        .type-btn.active {
+        .tab-btn.active {
             background: linear-gradient(135deg, #667eea, #764ba2);
             color: white;
             border-color: transparent;
         }
 
-        .type-btn:hover:not(.active) {
+        .tab-btn:hover:not(.active) {
             background: #f0f0ff;
         }
 
-        .generator-section {
+        .tab-content {
             display: none;
         }
 
-        .generator-section.active {
+        .tab-content.active {
             display: block;
         }
 
+        /* Section Styles */
         .section-title {
-            font-size: 24px;
+            font-size: 22px;
             color: #667eea;
-            margin-bottom: 25px;
+            margin-bottom: 20px;
             padding-bottom: 10px;
-            border-bottom: 3px solid #667eea;
+            border-bottom: 2px solid #667eea;
+            display: flex;
+            align-items: center;
+            gap: 10px;
         }
 
-        .form-grid {
+        .form-row {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-            gap: 25px;
-            margin-bottom: 30px;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin-bottom: 20px;
         }
 
         .form-group {
             background: #f8f9fa;
-            padding: 20px;
-            border-radius: 15px;
+            padding: 18px;
+            border-radius: 12px;
             border: 2px solid #e9ecef;
         }
 
@@ -133,18 +140,18 @@
             display: block;
             font-weight: bold;
             color: #333;
-            margin-bottom: 10px;
-            font-size: 16px;
+            margin-bottom: 8px;
+            font-size: 14px;
         }
 
         .form-group input,
         .form-group select,
         .form-group textarea {
             width: 100%;
-            padding: 12px 15px;
-            font-size: 16px;
+            padding: 10px 12px;
+            font-size: 14px;
             border: 2px solid #ddd;
-            border-radius: 10px;
+            border-radius: 8px;
             outline: none;
             transition: border-color 0.3s;
         }
@@ -156,48 +163,115 @@
         }
 
         .form-group textarea {
-            min-height: 80px;
+            min-height: 60px;
             resize: vertical;
         }
 
-        .checkbox-group {
+        /* Chip/Tag Selection */
+        .chip-group {
             display: flex;
             flex-wrap: wrap;
-            gap: 10px;
+            gap: 8px;
         }
 
-        .checkbox-item {
+        .chip {
             background: white;
-            padding: 8px 15px;
+            padding: 6px 14px;
             border-radius: 20px;
             border: 2px solid #ddd;
             cursor: pointer;
             transition: all 0.3s;
-            font-size: 14px;
+            font-size: 13px;
+            user-select: none;
         }
 
-        .checkbox-item:hover {
+        .chip:hover {
             border-color: #667eea;
         }
 
-        .checkbox-item.selected {
+        .chip.selected {
             background: linear-gradient(135deg, #667eea, #764ba2);
             color: white;
             border-color: transparent;
         }
 
+        /* Template Cards */
+        .template-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .template-card {
+            background: linear-gradient(135deg, #f8f9fa, #fff);
+            border: 2px solid #e0e0e0;
+            border-radius: 15px;
+            padding: 20px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .template-card:hover {
+            border-color: #667eea;
+            transform: translateY(-3px);
+            box-shadow: 0 10px 30px rgba(102, 126, 234, 0.2);
+        }
+
+        .template-card.selected {
+            border-color: #667eea;
+            background: linear-gradient(135deg, #f0f0ff, #fff);
+        }
+
+        .template-card h4 {
+            color: #667eea;
+            margin-bottom: 8px;
+            font-size: 16px;
+        }
+
+        .template-card p {
+            color: #666;
+            font-size: 13px;
+            line-height: 1.5;
+        }
+
+        /* Preset Buttons */
+        .preset-row {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+
+        .preset-btn {
+            padding: 8px 18px;
+            background: #e3f2fd;
+            border: none;
+            border-radius: 20px;
+            color: #1976d2;
+            font-size: 13px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .preset-btn:hover {
+            background: #1976d2;
+            color: white;
+        }
+
+        /* Generate Button */
         .generate-btn {
             display: block;
             width: 100%;
-            max-width: 400px;
-            margin: 30px auto;
-            padding: 18px 40px;
-            font-size: 20px;
+            max-width: 350px;
+            margin: 25px auto;
+            padding: 16px 35px;
+            font-size: 18px;
             font-weight: bold;
             background: linear-gradient(135deg, #667eea, #764ba2);
             color: white;
             border: none;
-            border-radius: 50px;
+            border-radius: 40px;
             cursor: pointer;
             transition: all 0.3s;
             box-shadow: 0 5px 20px rgba(102, 126, 234, 0.4);
@@ -208,88 +282,213 @@
             box-shadow: 0 8px 30px rgba(102, 126, 234, 0.5);
         }
 
+        /* Result Section */
         .result-section {
             background: linear-gradient(135deg, #1a1a2e, #16213e);
-            border-radius: 20px;
-            padding: 30px;
-            margin-top: 30px;
+            border-radius: 15px;
+            padding: 25px;
+            margin-top: 25px;
+            display: none;
+        }
+
+        .result-section.show {
+            display: block;
+        }
+
+        .result-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
         }
 
         .result-title {
             color: #ffd700;
-            font-size: 20px;
-            margin-bottom: 15px;
+            font-size: 18px;
         }
 
-        .result-box {
-            background: rgba(255,255,255,0.1);
-            border-radius: 15px;
-            padding: 25px;
-            color: #e0e0e0;
-            font-size: 16px;
-            line-height: 1.8;
-            font-family: monospace;
-            white-space: pre-wrap;
-            word-wrap: break-word;
-            min-height: 100px;
+        .result-actions {
+            display: flex;
+            gap: 10px;
         }
 
-        .copy-btn {
-            display: inline-block;
-            margin-top: 15px;
-            padding: 12px 30px;
-            background: #ffd700;
-            color: #1a1a2e;
+        .action-btn {
+            padding: 8px 18px;
             border: none;
-            border-radius: 25px;
-            font-size: 16px;
+            border-radius: 20px;
+            font-size: 13px;
             font-weight: bold;
             cursor: pointer;
             transition: all 0.3s;
         }
 
-        .copy-btn:hover {
-            background: #ffed4a;
+        .copy-btn {
+            background: #ffd700;
+            color: #1a1a2e;
+        }
+
+        .save-btn {
+            background: #4caf50;
+            color: white;
+        }
+
+        .action-btn:hover {
             transform: scale(1.05);
         }
 
-        .tips-box {
-            background: #fff3cd;
-            border: 2px solid #ffc107;
+        .result-box {
+            background: rgba(255,255,255,0.1);
+            border-radius: 12px;
+            padding: 20px;
+            color: #e0e0e0;
+            font-size: 14px;
+            line-height: 1.8;
+            font-family: 'Consolas', monospace;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+            min-height: 80px;
+        }
+
+        /* History Section */
+        .history-section {
+            background: #f8f9fa;
             border-radius: 15px;
             padding: 20px;
             margin-top: 25px;
         }
 
+        .history-title {
+            font-size: 18px;
+            color: #333;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .clear-history {
+            background: #ff5252;
+            color: white;
+            border: none;
+            padding: 6px 15px;
+            border-radius: 15px;
+            font-size: 12px;
+            cursor: pointer;
+        }
+
+        .history-list {
+            max-height: 200px;
+            overflow-y: auto;
+        }
+
+        .history-item {
+            background: white;
+            border: 1px solid #e0e0e0;
+            border-radius: 10px;
+            padding: 12px;
+            margin-bottom: 10px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .history-item:hover {
+            border-color: #667eea;
+        }
+
+        .history-item .time {
+            font-size: 11px;
+            color: #999;
+            margin-bottom: 5px;
+        }
+
+        .history-item .content {
+            font-size: 13px;
+            color: #333;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        /* Example Library */
+        .example-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 15px;
+        }
+
+        .example-card {
+            background: linear-gradient(135deg, #1a1a2e, #16213e);
+            border-radius: 12px;
+            padding: 18px;
+            color: white;
+        }
+
+        .example-card h5 {
+            color: #ffd700;
+            margin-bottom: 10px;
+            font-size: 14px;
+        }
+
+        .example-card p {
+            font-size: 12px;
+            line-height: 1.6;
+            color: #b0b0b0;
+            font-family: monospace;
+        }
+
+        .example-card .use-btn {
+            margin-top: 12px;
+            padding: 6px 15px;
+            background: #667eea;
+            color: white;
+            border: none;
+            border-radius: 15px;
+            font-size: 12px;
+            cursor: pointer;
+        }
+
+        /* Tips */
+        .tips-box {
+            background: #fff3cd;
+            border: 2px solid #ffc107;
+            border-radius: 12px;
+            padding: 15px;
+            margin-top: 20px;
+        }
+
         .tips-box h4 {
             color: #856404;
-            margin-bottom: 10px;
+            margin-bottom: 8px;
+            font-size: 14px;
         }
 
         .tips-box ul {
             color: #856404;
-            padding-left: 20px;
+            padding-left: 18px;
+            font-size: 13px;
         }
 
         .tips-box li {
-            margin-bottom: 5px;
+            margin-bottom: 4px;
         }
 
+        /* Responsive */
         @media (max-width: 768px) {
             .header h1 {
                 font-size: 28px;
             }
 
             .main-card {
-                padding: 25px;
+                padding: 20px;
             }
 
-            .type-selector {
-                flex-direction: column;
+            .tabs {
+                gap: 8px;
             }
 
-            .type-btn {
-                width: 100%;
+            .tab-btn {
+                padding: 10px 18px;
+                font-size: 14px;
             }
         }
     </style>
@@ -297,245 +496,453 @@
 <body>
     <div class="container">
         <div class="header">
-            <h1>Flow 提示詞生成器</h1>
+            <h1>Flow 提示詞生成器 Pro</h1>
             <p>快速生成專業的圖像與影片提示詞</p>
             <div class="nav-links">
                 <a href="GoogleFlow_課程總覽.html" class="nav-link">🏠 返回課程</a>
-                <a href="https://labs.google/flow/about" target="_blank" class="nav-link">🔗 Flow 官網</a>
+                <a href="https://labs.google/flow/about" target="_blank" class="nav-link">🔗 Flow</a>
                 <a href="https://www.facebook.com/?locale=zh_TW" target="_blank" class="nav-link">📘 FB</a>
                 <a href="https://www.youtube.com/@Liang-yt02" target="_blank" class="nav-link">🎥 YT</a>
             </div>
         </div>
 
         <div class="main-card">
-            <!-- Type Selector -->
-            <div class="type-selector">
-                <button class="type-btn active" onclick="switchType('image')">🖼️ 圖像生成</button>
-                <button class="type-btn" onclick="switchType('video')">🎬 影片生成</button>
+            <!-- Tabs -->
+            <div class="tabs">
+                <button class="tab-btn active" onclick="switchTab('image')">🖼️ 圖像生成</button>
+                <button class="tab-btn" onclick="switchTab('video')">🎬 影片生成</button>
+                <button class="tab-btn" onclick="switchTab('template')">📋 快速模板</button>
+                <button class="tab-btn" onclick="switchTab('example')">💡 範例庫</button>
             </div>
 
-            <!-- Image Generator -->
-            <div id="image-section" class="generator-section active">
-                <h2 class="section-title">🖼️ 圖像提示詞生成器</h2>
-
-                <div class="form-grid">
+            <!-- Image Tab -->
+            <div id="tab-image" class="tab-content active">
+                <h3 class="section-title">👤 角色描述</h3>
+                <div class="preset-row">
+                    <button class="preset-btn" onclick="fillPreset('img', 'subject', 'A young Asian man with short black hair')">亞洲男性</button>
+                    <button class="preset-btn" onclick="fillPreset('img', 'subject', 'A young Asian woman with long black hair')">亞洲女性</button>
+                    <button class="preset-btn" onclick="fillPreset('img', 'subject', 'A middle-aged businessman')">中年商務男</button>
+                    <button class="preset-btn" onclick="fillPreset('img', 'subject', 'A cheerful elderly woman')">開朗老奶奶</button>
+                </div>
+                <div class="form-row">
                     <div class="form-group">
                         <label>👤 主體描述</label>
                         <input type="text" id="img-subject" placeholder="例：A young woman with long black hair">
                     </div>
                     <div class="form-group">
-                        <label>👔 服裝/外觀</label>
+                        <label>👔 服裝外觀</label>
                         <input type="text" id="img-outfit" placeholder="例：wearing a red dress">
                     </div>
-                    <div class="form-group">
-                        <label>🎭 動作/姿勢</label>
-                        <input type="text" id="img-action" placeholder="例：smiling and looking at camera">
+                </div>
+
+                <h3 class="section-title">🎭 動作與姿勢</h3>
+                <div class="form-group">
+                    <label>選擇動作</label>
+                    <div class="chip-group" id="img-action-chips">
+                        <span class="chip" data-value="smiling at camera">微笑看鏡頭</span>
+                        <span class="chip" data-value="standing confidently">自信站立</span>
+                        <span class="chip" data-value="sitting relaxed">放鬆坐著</span>
+                        <span class="chip" data-value="walking gracefully">優雅行走</span>
+                        <span class="chip" data-value="holding a coffee cup">拿著咖啡</span>
+                        <span class="chip" data-value="reading a book">閱讀書籍</span>
+                        <span class="chip" data-value="looking thoughtful">沉思表情</span>
+                        <span class="chip" data-value="laughing joyfully">開心大笑</span>
                     </div>
+                </div>
+
+                <h3 class="section-title">🏠 場景環境</h3>
+                <div class="preset-row">
+                    <button class="preset-btn" onclick="fillPreset('img', 'environment', 'in a modern coffee shop with warm lighting')">咖啡廳</button>
+                    <button class="preset-btn" onclick="fillPreset('img', 'environment', 'on a busy city street at night with neon lights')">夜晚街道</button>
+                    <button class="preset-btn" onclick="fillPreset('img', 'environment', 'in a lush green forest with sunlight filtering through')">森林</button>
+                    <button class="preset-btn" onclick="fillPreset('img', 'environment', 'on a beautiful beach at sunset')">海灘夕陽</button>
+                    <button class="preset-btn" onclick="fillPreset('img', 'environment', 'in a professional studio with white background')">攝影棚</button>
+                    <button class="preset-btn" onclick="fillPreset('img', 'environment', 'in a cozy living room')">溫馨客廳</button>
+                </div>
+                <div class="form-group">
+                    <label>🏠 場景描述</label>
+                    <input type="text" id="img-environment" placeholder="例：in a modern office">
+                </div>
+
+                <h3 class="section-title">💡 光線與氛圍</h3>
+                <div class="form-row">
                     <div class="form-group">
-                        <label>🏠 場景環境</label>
-                        <input type="text" id="img-environment" placeholder="例：in a modern coffee shop">
-                    </div>
-                    <div class="form-group">
-                        <label>💡 光線條件</label>
+                        <label>光線條件</label>
                         <select id="img-lighting">
                             <option value="">-- 選擇光線 --</option>
-                            <option value="natural sunlight">自然陽光 (Natural Sunlight)</option>
-                            <option value="golden hour lighting">黃金時刻 (Golden Hour)</option>
-                            <option value="soft diffused light">柔和漫射光 (Soft Diffused)</option>
-                            <option value="dramatic side lighting">戲劇性側光 (Dramatic Side)</option>
-                            <option value="neon lights">霓虹燈光 (Neon Lights)</option>
-                            <option value="studio lighting">攝影棚燈光 (Studio Lighting)</option>
-                            <option value="cinematic lighting">電影燈光 (Cinematic)</option>
+                            <option value="natural sunlight, bright and clear">自然陽光</option>
+                            <option value="golden hour lighting, warm tones">黃金時刻</option>
+                            <option value="soft diffused light, gentle shadows">柔和漫射光</option>
+                            <option value="dramatic side lighting, strong contrast">戲劇性側光</option>
+                            <option value="neon lights, colorful glow">霓虹燈光</option>
+                            <option value="professional studio lighting, even illumination">攝影棚燈光</option>
+                            <option value="cinematic lighting, film quality">電影燈光</option>
+                            <option value="moonlight, soft blue tones">月光</option>
+                            <option value="candlelight, warm intimate glow">燭光</option>
                         </select>
                     </div>
                     <div class="form-group">
-                        <label>🎨 視覺風格</label>
-                        <select id="img-style">
-                            <option value="">-- 選擇風格 --</option>
-                            <option value="photorealistic, highly detailed, 8K">寫實風格 (Photorealistic)</option>
-                            <option value="cinematic film still, movie quality">電影質感 (Cinematic)</option>
-                            <option value="portrait photography, professional">專業人像 (Portrait)</option>
-                            <option value="artistic, creative composition">藝術風格 (Artistic)</option>
-                            <option value="vintage film aesthetic, grainy">復古底片 (Vintage)</option>
-                            <option value="anime style, illustration">動漫風格 (Anime)</option>
+                        <label>情緒氛圍</label>
+                        <select id="img-mood">
+                            <option value="">-- 選擇氛圍 --</option>
+                            <option value="joyful and energetic">歡樂活力</option>
+                            <option value="peaceful and serene">平靜祥和</option>
+                            <option value="nostalgic and sentimental">懷舊感傷</option>
+                            <option value="romantic and dreamy">浪漫夢幻</option>
+                            <option value="mysterious and dramatic">神秘戲劇</option>
+                            <option value="epic and powerful">史詩磅礴</option>
+                            <option value="cozy and warm">溫馨舒適</option>
+                            <option value="tense and suspenseful">緊張懸疑</option>
                         </select>
+                    </div>
+                </div>
+
+                <h3 class="section-title">🎨 視覺風格</h3>
+                <div class="form-group">
+                    <label>選擇風格（可多選）</label>
+                    <div class="chip-group" id="img-style-chips">
+                        <span class="chip" data-value="photorealistic">寫實風格</span>
+                        <span class="chip" data-value="cinematic film quality">電影質感</span>
+                        <span class="chip" data-value="8K ultra high definition">8K 高清</span>
+                        <span class="chip" data-value="professional portrait">專業人像</span>
+                        <span class="chip" data-value="shallow depth of field, bokeh">淺景深</span>
+                        <span class="chip" data-value="sharp focus, highly detailed">銳利細節</span>
+                        <span class="chip" data-value="vintage film aesthetic">復古底片</span>
+                        <span class="chip" data-value="artistic composition">藝術構圖</span>
                     </div>
                 </div>
 
                 <div class="form-group">
                     <label>📐 圖片比例</label>
-                    <div class="checkbox-group" id="img-ratio-group">
-                        <span class="checkbox-item" data-value="1:1">1:1 正方形</span>
-                        <span class="checkbox-item" data-value="16:9">16:9 橫向</span>
-                        <span class="checkbox-item selected" data-value="9:16">9:16 直向</span>
-                        <span class="checkbox-item" data-value="4:3">4:3 標準</span>
-                        <span class="checkbox-item" data-value="3:2">3:2 相片</span>
-                    </div>
-                </div>
-
-                <div class="form-group">
-                    <label>✨ 額外效果（可多選）</label>
-                    <div class="checkbox-group" id="img-effects-group">
-                        <span class="checkbox-item" data-value="shallow depth of field, bokeh">淺景深</span>
-                        <span class="checkbox-item" data-value="sharp focus">銳利對焦</span>
-                        <span class="checkbox-item" data-value="lens flare">光暈效果</span>
-                        <span class="checkbox-item" data-value="volumetric lighting">體積光</span>
-                        <span class="checkbox-item" data-value="reflections">反射效果</span>
-                        <span class="checkbox-item" data-value="dramatic shadows">戲劇陰影</span>
+                    <div class="chip-group" id="img-ratio-chips">
+                        <span class="chip" data-value="1:1">1:1 正方</span>
+                        <span class="chip selected" data-value="9:16">9:16 直向</span>
+                        <span class="chip" data-value="16:9">16:9 橫向</span>
+                        <span class="chip" data-value="4:3">4:3 標準</span>
+                        <span class="chip" data-value="3:2">3:2 相片</span>
                     </div>
                 </div>
 
                 <button class="generate-btn" onclick="generateImagePrompt()">✨ 生成圖像提示詞</button>
             </div>
 
-            <!-- Video Generator -->
-            <div id="video-section" class="generator-section">
-                <h2 class="section-title">🎬 影片提示詞生成器</h2>
-
-                <div class="form-grid">
+            <!-- Video Tab -->
+            <div id="tab-video" class="tab-content">
+                <h3 class="section-title">👤 角色與動作</h3>
+                <div class="preset-row">
+                    <button class="preset-btn" onclick="fillPreset('vid', 'subject', 'A man in a black suit')">西裝男</button>
+                    <button class="preset-btn" onclick="fillPreset('vid', 'subject', 'A woman in casual clothes')">休閒女</button>
+                    <button class="preset-btn" onclick="fillPreset('vid', 'subject', 'A child playing')">玩耍孩童</button>
+                    <button class="preset-btn" onclick="fillPreset('vid', 'subject', 'A couple holding hands')">情侶牽手</button>
+                </div>
+                <div class="form-row">
                     <div class="form-group">
                         <label>👤 主體描述</label>
-                        <input type="text" id="vid-subject" placeholder="例：A man in a black suit">
+                        <input type="text" id="vid-subject" placeholder="例：A young man">
                     </div>
                     <div class="form-group">
                         <label>🎭 動作描述</label>
                         <input type="text" id="vid-action" placeholder="例：walking confidently through">
                     </div>
-                    <div class="form-group">
-                        <label>🏠 場景環境</label>
-                        <input type="text" id="vid-environment" placeholder="例：a busy city street at night">
+                </div>
+
+                <h3 class="section-title">🏠 場景環境</h3>
+                <div class="preset-row">
+                    <button class="preset-btn" onclick="fillPreset('vid', 'environment', 'a busy city street at night')">夜晚城市</button>
+                    <button class="preset-btn" onclick="fillPreset('vid', 'environment', 'a peaceful beach at sunset')">海灘夕陽</button>
+                    <button class="preset-btn" onclick="fillPreset('vid', 'environment', 'a movie studio backstage with equipment')">電影片場</button>
+                    <button class="preset-btn" onclick="fillPreset('vid', 'environment', 'a futuristic sci-fi corridor')">科幻走廊</button>
+                    <button class="preset-btn" onclick="fillPreset('vid', 'environment', 'a cozy coffee shop interior')">咖啡廳內</button>
+                </div>
+                <div class="form-group">
+                    <label>🏠 場景描述</label>
+                    <input type="text" id="vid-environment" placeholder="例：a rainy city street">
+                </div>
+
+                <h3 class="section-title">📹 運鏡方式</h3>
+                <div class="form-group">
+                    <label>選擇運鏡（可多選）</label>
+                    <div class="chip-group" id="vid-camera-chips">
+                        <span class="chip" data-value="static shot, locked camera">靜態鏡頭</span>
+                        <span class="chip" data-value="slow pan left to right">慢速橫搖</span>
+                        <span class="chip" data-value="tracking shot, following subject">追蹤鏡頭</span>
+                        <span class="chip" data-value="dolly in, pushing forward smoothly">推進鏡頭</span>
+                        <span class="chip" data-value="dolly out, pulling back">拉遠鏡頭</span>
+                        <span class="chip" data-value="crane shot, rising upward">升降鏡頭</span>
+                        <span class="chip" data-value="orbiting around subject 360 degrees">環繞鏡頭</span>
+                        <span class="chip" data-value="handheld camera, natural shake">手持晃動</span>
+                        <span class="chip" data-value="whip pan, fast motion blur">甩鏡轉場</span>
+                        <span class="chip" data-value="zoom in dramatically">急速變焦</span>
+                        <span class="chip" data-value="time-lapse, accelerated motion">縮時攝影</span>
+                        <span class="chip" data-value="slow motion, 120fps">慢動作</span>
                     </div>
+                </div>
+
+                <h3 class="section-title">🎯 視角類型</h3>
+                <div class="form-group">
+                    <div class="chip-group" id="vid-angle-chips">
+                        <span class="chip" data-value="wide establishing shot">廣角建立鏡</span>
+                        <span class="chip" data-value="medium shot">中景鏡頭</span>
+                        <span class="chip" data-value="close-up on face">臉部特寫</span>
+                        <span class="chip" data-value="extreme close-up">極特寫</span>
+                        <span class="chip" data-value="first-person POV">第一人稱</span>
+                        <span class="chip" data-value="over-the-shoulder">過肩視角</span>
+                        <span class="chip" data-value="aerial drone view">空拍視角</span>
+                        <span class="chip" data-value="low angle, looking up heroically">仰角英雄</span>
+                        <span class="chip" data-value="high angle, looking down">俯角視角</span>
+                        <span class="chip" data-value="dutch angle, tilted frame">傾斜構圖</span>
+                    </div>
+                </div>
+
+                <h3 class="section-title">🎵 音訊設定</h3>
+                <div class="form-group">
+                    <label>選擇音效（可多選）</label>
+                    <div class="chip-group" id="vid-audio-chips">
+                        <span class="chip" data-value="ambient environmental sounds">環境音</span>
+                        <span class="chip" data-value="footsteps on ground">腳步聲</span>
+                        <span class="chip" data-value="city traffic and car horns">城市車流</span>
+                        <span class="chip" data-value="wind blowing gently">微風吹拂</span>
+                        <span class="chip" data-value="rain falling, water drops">雨聲</span>
+                        <span class="chip" data-value="birds chirping, nature sounds">鳥鳴自然</span>
+                        <span class="chip" data-value="crowd chatter, busy atmosphere">人群喧嘩</span>
+                        <span class="chip" data-value="soft piano background music">鋼琴配樂</span>
+                        <span class="chip" data-value="epic orchestral score">史詩交響</span>
+                        <span class="chip" data-value="electronic beats, modern music">電子音樂</span>
+                        <span class="chip" data-value="no audio, silent">無聲</span>
+                    </div>
+                </div>
+
+                <h3 class="section-title">🎨 視覺風格與氛圍</h3>
+                <div class="form-row">
                     <div class="form-group">
-                        <label>💡 光線條件</label>
+                        <label>光線條件</label>
                         <select id="vid-lighting">
                             <option value="">-- 選擇光線 --</option>
-                            <option value="natural daylight">自然日光</option>
-                            <option value="golden hour, warm sunlight">黃金時刻</option>
-                            <option value="blue hour, twilight">藍調時刻</option>
-                            <option value="neon city lights">霓虹城市燈光</option>
-                            <option value="dramatic cinematic lighting">戲劇電影燈光</option>
-                            <option value="soft studio lighting">柔和攝影棚光</option>
+                            <option value="natural daylight, bright">自然日光</option>
+                            <option value="golden hour, warm sunset tones">黃金時刻</option>
+                            <option value="blue hour, twilight atmosphere">藍調時刻</option>
+                            <option value="neon city lights, colorful reflections">霓虹都市</option>
+                            <option value="dramatic cinematic lighting">電影燈光</option>
                             <option value="moonlight, night scene">月光夜景</option>
+                            <option value="studio lighting, professional">攝影棚光</option>
                         </select>
                     </div>
-                </div>
-
-                <div class="form-group">
-                    <label>📹 運鏡方式</label>
-                    <div class="checkbox-group" id="vid-camera-group">
-                        <span class="checkbox-item" data-value="static shot">靜態鏡頭</span>
-                        <span class="checkbox-item" data-value="slow pan left">慢速左搖</span>
-                        <span class="checkbox-item" data-value="slow pan right">慢速右搖</span>
-                        <span class="checkbox-item" data-value="tracking shot, following subject">追蹤鏡頭</span>
-                        <span class="checkbox-item" data-value="dolly in, pushing forward">推進鏡頭</span>
-                        <span class="checkbox-item" data-value="dolly out, pulling back">拉遠鏡頭</span>
-                        <span class="checkbox-item" data-value="crane shot, rising up">升降鏡頭</span>
-                        <span class="checkbox-item" data-value="orbiting around subject">環繞鏡頭</span>
-                        <span class="checkbox-item" data-value="handheld, slight shake">手持晃動</span>
+                    <div class="form-group">
+                        <label>視覺風格</label>
+                        <select id="vid-style">
+                            <option value="">-- 選擇風格 --</option>
+                            <option value="cinematic film quality, movie aesthetic, film grain">電影質感</option>
+                            <option value="photorealistic, highly detailed, 8K resolution">寫實高清</option>
+                            <option value="cyberpunk aesthetic, neon colors, futuristic">賽博龐克</option>
+                            <option value="vintage film look, retro colors, nostalgic">復古風格</option>
+                            <option value="dreamy ethereal, soft focus, magical">夢幻柔焦</option>
+                            <option value="documentary style, raw authentic footage">紀錄片風</option>
+                            <option value="anime style, Japanese animation aesthetic">動漫風格</option>
+                        </select>
                     </div>
-                </div>
-
-                <div class="form-group">
-                    <label>🎯 視角類型</label>
-                    <div class="checkbox-group" id="vid-angle-group">
-                        <span class="checkbox-item" data-value="wide shot">廣角鏡頭</span>
-                        <span class="checkbox-item" data-value="medium shot">中景鏡頭</span>
-                        <span class="checkbox-item" data-value="close-up">特寫鏡頭</span>
-                        <span class="checkbox-item" data-value="extreme close-up">極特寫</span>
-                        <span class="checkbox-item" data-value="first-person POV">第一人稱</span>
-                        <span class="checkbox-item" data-value="over-the-shoulder">過肩視角</span>
-                        <span class="checkbox-item" data-value="aerial view, bird's eye">空拍視角</span>
-                        <span class="checkbox-item" data-value="low angle, looking up">仰角視角</span>
-                        <span class="checkbox-item" data-value="high angle, looking down">俯角視角</span>
-                    </div>
-                </div>
-
-                <div class="form-group">
-                    <label>🎵 音訊描述</label>
-                    <div class="checkbox-group" id="vid-audio-group">
-                        <span class="checkbox-item" data-value="ambient sounds">環境音</span>
-                        <span class="checkbox-item" data-value="footsteps">腳步聲</span>
-                        <span class="checkbox-item" data-value="city traffic noise">城市車流</span>
-                        <span class="checkbox-item" data-value="wind blowing">風聲</span>
-                        <span class="checkbox-item" data-value="birds chirping">鳥鳴</span>
-                        <span class="checkbox-item" data-value="rain sounds">雨聲</span>
-                        <span class="checkbox-item" data-value="soft background music">背景音樂</span>
-                        <span class="checkbox-item" data-value="epic orchestral score">史詩配樂</span>
-                    </div>
-                </div>
-
-                <div class="form-group">
-                    <label>🎨 視覺風格</label>
-                    <select id="vid-style">
-                        <option value="">-- 選擇風格 --</option>
-                        <option value="cinematic quality, film grain, movie aesthetic">電影質感</option>
-                        <option value="photorealistic, highly detailed, 8K">寫實高清</option>
-                        <option value="cyberpunk aesthetic, neon colors">賽博龐克</option>
-                        <option value="vintage film look, retro aesthetic">復古風格</option>
-                        <option value="dreamy, ethereal, soft focus">夢幻柔焦</option>
-                        <option value="documentary style, raw footage">紀錄片風格</option>
-                    </select>
                 </div>
 
                 <button class="generate-btn" onclick="generateVideoPrompt()">✨ 生成影片提示詞</button>
             </div>
 
-            <!-- Result Section -->
-            <div class="result-section" id="result-section" style="display: none;">
-                <h3 class="result-title">📝 生成的提示詞</h3>
-                <div class="result-box" id="result-text"></div>
-                <button class="copy-btn" onclick="copyResult()">📋 複製提示詞</button>
+            <!-- Template Tab -->
+            <div id="tab-template" class="tab-content">
+                <h3 class="section-title">📋 快速模板（點擊選擇）</h3>
+
+                <h4 style="color: #667eea; margin: 20px 0 15px;">🎬 電影自拍系列</h4>
+                <div class="template-grid">
+                    <div class="template-card" onclick="useTemplate('movie-selfie')">
+                        <h4>🦸 電影片場自拍</h4>
+                        <p>與電影明星在拍攝現場合照，包含專業燈光設備和工作人員</p>
+                    </div>
+                    <div class="template-card" onclick="useTemplate('vip-cart')">
+                        <h4>🚗 VIP 高爾夫球車</h4>
+                        <p>乘坐片場專用車穿越製片廠，展現大牌氣派</p>
+                    </div>
+                    <div class="template-card" onclick="useTemplate('escape-run')">
+                        <h4>🏃 緊張逃跑</h4>
+                        <p>假裝被保安追趕，劇烈晃動的手持鏡頭</p>
+                    </div>
+                    <div class="template-card" onclick="useTemplate('whip-pan')">
+                        <h4>🌀 甩鏡轉場</h4>
+                        <p>360度快速旋轉，無縫切換場景</p>
+                    </div>
+                </div>
+
+                <h4 style="color: #667eea; margin: 20px 0 15px;">🕰️ 穿越時空系列</h4>
+                <div class="template-grid">
+                    <div class="template-card" onclick="useTemplate('childhood')">
+                        <h4>👶 童年的自己</h4>
+                        <p>與小時候的自己溫馨合照</p>
+                    </div>
+                    <div class="template-card" onclick="useTemplate('teenage')">
+                        <h4>🎓 青春的自己</h4>
+                        <p>與學生時代的自己對話</p>
+                    </div>
+                    <div class="template-card" onclick="useTemplate('future')">
+                        <h4>👴 未來的自己</h4>
+                        <p>與年老智慧的自己相遇</p>
+                    </div>
+                    <div class="template-card" onclick="useTemplate('time-corridor')">
+                        <h4>🚪 時光走廊</h4>
+                        <p>穿越不同時期的過渡影片</p>
+                    </div>
+                </div>
+
+                <h4 style="color: #667eea; margin: 20px 0 15px;">📦 其他熱門模板</h4>
+                <div class="template-grid">
+                    <div class="template-card" onclick="useTemplate('product')">
+                        <h4>🛍️ 產品展示</h4>
+                        <p>360度產品旋轉展示，專業燈光</p>
+                    </div>
+                    <div class="template-card" onclick="useTemplate('travel')">
+                        <h4>✈️ 旅遊風景</h4>
+                        <p>壯麗自然風景，航拍視角</p>
+                    </div>
+                    <div class="template-card" onclick="useTemplate('food')">
+                        <h4>🍕 美食特寫</h4>
+                        <p>誘人的美食攝影，暖色調</p>
+                    </div>
+                    <div class="template-card" onclick="useTemplate('pet')">
+                        <h4>🐕 寵物萌拍</h4>
+                        <p>可愛寵物的生動捕捉</p>
+                    </div>
+                </div>
+
+                <div class="result-section" id="template-result">
+                    <div class="result-header">
+                        <h3 class="result-title">📝 模板提示詞</h3>
+                        <div class="result-actions">
+                            <button class="action-btn copy-btn" onclick="copyResult()">📋 複製</button>
+                            <button class="action-btn save-btn" onclick="saveToHistory()">💾 儲存</button>
+                        </div>
+                    </div>
+                    <div class="result-box" id="template-text"></div>
+                </div>
             </div>
 
+            <!-- Example Tab -->
+            <div id="tab-example" class="tab-content">
+                <h3 class="section-title">💡 精選範例庫（點擊「使用」複製）</h3>
+
+                <h4 style="color: #667eea; margin: 20px 0 15px;">🖼️ 圖像範例</h4>
+                <div class="example-grid">
+                    <div class="example-card">
+                        <h5>電影海報風格人像</h5>
+                        <p>A confident Asian man in a tailored black suit, standing in the rain on a neon-lit Tokyo street at night. Dramatic cinematic lighting, rain drops visible, reflections on wet pavement, movie poster composition, photorealistic, 8K.</p>
+                        <button class="use-btn" onclick="copyExample(this)">使用此範例</button>
+                    </div>
+                    <div class="example-card">
+                        <h5>夢幻森林人像</h5>
+                        <p>A young woman with flowing hair, wearing a white flowing dress, standing in an enchanted forest. Magical sunbeams filtering through ancient trees, fireflies glowing, ethereal dreamy atmosphere, fantasy photography, shallow depth of field.</p>
+                        <button class="use-btn" onclick="copyExample(this)">使用此範例</button>
+                    </div>
+                    <div class="example-card">
+                        <h5>專業商務形象</h5>
+                        <p>Professional headshot of a confident businesswoman in a modern office. Wearing elegant navy blazer, warm smile, soft studio lighting, clean white background, corporate portrait style, sharp focus, high-end photography.</p>
+                        <button class="use-btn" onclick="copyExample(this)">使用此範例</button>
+                    </div>
+                </div>
+
+                <h4 style="color: #667eea; margin: 20px 0 15px;">🎬 影片範例</h4>
+                <div class="example-grid">
+                    <div class="example-card">
+                        <h5>城市漫步 Vlog</h5>
+                        <p>First-person POV walking through neon-lit streets of Tokyo at night. Rain-soaked pavement reflecting colorful signs, crowds with umbrellas. Handheld camera shake, cyberpunk aesthetic. Sound of rain, distant traffic, Japanese pop music from shops. Cinematic quality, 8K.</p>
+                        <button class="use-btn" onclick="copyExample(this)">使用此範例</button>
+                    </div>
+                    <div class="example-card">
+                        <h5>史詩風景航拍</h5>
+                        <p>Aerial drone shot flying over majestic snow-capped mountains at sunrise. Golden hour lighting, clouds below, vast wilderness. Slow cinematic movement, rising upward to reveal endless peaks. Epic orchestral score, wind sounds. 8K resolution, breathtaking scenery.</p>
+                        <button class="use-btn" onclick="copyExample(this)">使用此範例</button>
+                    </div>
+                    <div class="example-card">
+                        <h5>電影片場自拍</h5>
+                        <p>A point-of-view selfie on the filming set of a superhero movie. Fan smiling next to actor in detailed costume. Background with film cameras, lighting rigs, cables, busy crew members. Natural set lighting, photorealistic, highly detailed, 8K. Aspect ratio 9:16.</p>
+                        <button class="use-btn" onclick="copyExample(this)">使用此範例</button>
+                    </div>
+                    <div class="example-card">
+                        <h5>穿越時空對話</h5>
+                        <p>Cinematic scene of a 35-year-old man sitting across from his teenage self (16 years old) in a cozy cafe. Deep conversation, the younger version uncertain, older self speaking with gentle wisdom. Warm lighting, over-the-shoulder shots, emotional atmosphere, photorealistic.</p>
+                        <button class="use-btn" onclick="copyExample(this)">使用此範例</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Result Section -->
+            <div class="result-section" id="result-section">
+                <div class="result-header">
+                    <h3 class="result-title">📝 生成的提示詞</h3>
+                    <div class="result-actions">
+                        <button class="action-btn copy-btn" onclick="copyResult()">📋 複製</button>
+                        <button class="action-btn save-btn" onclick="saveToHistory()">💾 儲存</button>
+                    </div>
+                </div>
+                <div class="result-box" id="result-text"></div>
+            </div>
+
+            <!-- History Section -->
+            <div class="history-section" id="history-section">
+                <div class="history-title">
+                    <span>📜 歷史紀錄</span>
+                    <button class="clear-history" onclick="clearHistory()">清除全部</button>
+                </div>
+                <div class="history-list" id="history-list">
+                    <p style="color: #999; font-size: 13px; text-align: center;">尚無儲存的提示詞</p>
+                </div>
+            </div>
+
+            <!-- Tips -->
             <div class="tips-box">
                 <h4>💡 使用技巧</h4>
                 <ul>
-                    <li>提示詞請使用<strong>英文</strong>輸入，中文僅供參考</li>
-                    <li>描述越具體，生成效果越精確</li>
-                    <li>可以多選運鏡、視角和音訊選項來組合效果</li>
-                    <li>生成後可自行微調提示詞內容</li>
+                    <li>提示詞請使用<strong>英文</strong>，中文僅供操作參考</li>
+                    <li>描述越具體詳細，AI 生成效果越精確</li>
+                    <li>可多選運鏡、視角、音效來組合創意效果</li>
+                    <li>點擊「儲存」可保存常用提示詞到歷史紀錄</li>
+                    <li>快速模板適合新手快速上手，範例庫提供進階參考</li>
                 </ul>
             </div>
         </div>
     </div>
 
     <script>
-        // Switch between image and video
-        function switchType(type) {
-            document.querySelectorAll('.type-btn').forEach(btn => btn.classList.remove('active'));
-            document.querySelectorAll('.generator-section').forEach(sec => sec.classList.remove('active'));
+        // Tab switching
+        function switchTab(tabName) {
+            document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+            document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
 
-            if (type === 'image') {
-                document.querySelectorAll('.type-btn')[0].classList.add('active');
-                document.getElementById('image-section').classList.add('active');
-            } else {
-                document.querySelectorAll('.type-btn')[1].classList.add('active');
-                document.getElementById('video-section').classList.add('active');
-            }
+            event.target.classList.add('active');
+            document.getElementById('tab-' + tabName).classList.add('active');
 
-            document.getElementById('result-section').style.display = 'none';
+            document.getElementById('result-section').classList.remove('show');
         }
 
-        // Toggle checkbox items
-        document.querySelectorAll('.checkbox-group').forEach(group => {
-            const isMulti = !group.id.includes('ratio');
-            group.querySelectorAll('.checkbox-item').forEach(item => {
-                item.addEventListener('click', function() {
-                    if (isMulti) {
-                        this.classList.toggle('selected');
-                    } else {
-                        group.querySelectorAll('.checkbox-item').forEach(i => i.classList.remove('selected'));
+        // Chip selection
+        document.querySelectorAll('.chip-group').forEach(group => {
+            const isSingle = group.id.includes('ratio');
+            group.querySelectorAll('.chip').forEach(chip => {
+                chip.addEventListener('click', function() {
+                    if (isSingle) {
+                        group.querySelectorAll('.chip').forEach(c => c.classList.remove('selected'));
                         this.classList.add('selected');
+                    } else {
+                        this.classList.toggle('selected');
                     }
                 });
             });
         });
 
-        // Get selected values from checkbox group
-        function getSelectedValues(groupId) {
+        // Fill preset
+        function fillPreset(type, field, value) {
+            document.getElementById(type + '-' + field).value = value;
+        }
+
+        // Get selected chips
+        function getSelectedChips(groupId) {
             const values = [];
-            document.querySelectorAll(`#${groupId} .checkbox-item.selected`).forEach(item => {
-                values.push(item.dataset.value);
+            document.querySelectorAll('#' + groupId + ' .chip.selected').forEach(chip => {
+                values.push(chip.dataset.value);
             });
             return values;
         }
@@ -544,25 +951,24 @@
         function generateImagePrompt() {
             const subject = document.getElementById('img-subject').value.trim();
             const outfit = document.getElementById('img-outfit').value.trim();
-            const action = document.getElementById('img-action').value.trim();
+            const actions = getSelectedChips('img-action-chips');
             const environment = document.getElementById('img-environment').value.trim();
             const lighting = document.getElementById('img-lighting').value;
-            const style = document.getElementById('img-style').value;
-            const ratio = getSelectedValues('img-ratio-group')[0] || '9:16';
-            const effects = getSelectedValues('img-effects-group');
+            const mood = document.getElementById('img-mood').value;
+            const styles = getSelectedChips('img-style-chips');
+            const ratio = getSelectedChips('img-ratio-chips')[0] || '9:16';
 
-            let prompt = '';
+            let parts = [];
+            if (subject) parts.push(subject);
+            if (outfit) parts.push(outfit);
+            if (actions.length) parts.push(actions.join(', '));
+            if (environment) parts.push(environment);
+            if (lighting) parts.push(lighting);
+            if (mood) parts.push(mood + ' atmosphere');
+            if (styles.length) parts.push(styles.join(', '));
+            parts.push('Aspect ratio ' + ratio);
 
-            if (subject) prompt += subject;
-            if (outfit) prompt += ', ' + outfit;
-            if (action) prompt += ', ' + action;
-            if (environment) prompt += ', ' + environment;
-            if (lighting) prompt += '. ' + lighting;
-            if (effects.length > 0) prompt += ', ' + effects.join(', ');
-            if (style) prompt += '. ' + style;
-
-            prompt += '. Aspect ratio ' + ratio + '.';
-
+            const prompt = parts.join('. ') + '.';
             displayResult(prompt);
         }
 
@@ -571,50 +977,139 @@
             const subject = document.getElementById('vid-subject').value.trim();
             const action = document.getElementById('vid-action').value.trim();
             const environment = document.getElementById('vid-environment').value.trim();
+            const cameras = getSelectedChips('vid-camera-chips');
+            const angles = getSelectedChips('vid-angle-chips');
+            const audios = getSelectedChips('vid-audio-chips');
             const lighting = document.getElementById('vid-lighting').value;
-            const camera = getSelectedValues('vid-camera-group');
-            const angle = getSelectedValues('vid-angle-group');
-            const audio = getSelectedValues('vid-audio-group');
             const style = document.getElementById('vid-style').value;
 
-            let prompt = '';
+            let parts = [];
+            if (angles.length) parts.push(angles.join(', '));
+            if (subject) parts.push(subject);
+            if (action) parts.push(action);
+            if (environment) parts.push(environment);
+            if (lighting) parts.push(lighting);
+            if (cameras.length) parts.push(cameras.join(', '));
+            if (audios.length && !audios.includes('no audio, silent')) {
+                parts.push('Sound of ' + audios.join(', '));
+            } else if (audios.includes('no audio, silent')) {
+                parts.push('Silent video, no audio');
+            }
+            if (style) parts.push(style);
 
-            if (angle.length > 0) prompt += angle.join(', ') + '. ';
-            if (subject) prompt += subject;
-            if (action) prompt += ' ' + action;
-            if (environment) prompt += ' ' + environment;
-            if (lighting) prompt += '. ' + lighting;
-            if (camera.length > 0) prompt += '. ' + camera.join(', ');
-            if (audio.length > 0) prompt += '. Sound of ' + audio.join(', ');
-            if (style) prompt += '. ' + style;
-
-            prompt += '.';
-
+            const prompt = parts.join('. ') + '.';
             displayResult(prompt);
+        }
+
+        // Templates
+        const templates = {
+            'movie-selfie': 'A point-of-view selfie photograph taken by a fan holding up a smartphone on the bustling filming set of a blockbuster movie. The fan is smiling next to the lead actor in detailed costume. Background cluttered with professional film cameras, large lighting rigs, cables, crew members working, and movie props. Natural set lighting, photorealistic, highly detailed, 8K. Aspect ratio 9:16.',
+            'vip-cart': 'First-person POV riding on a moving studio golf cart. Driving fast through the movie studio lot. Wind blowing, passing by production trucks, trailers, and crew members. Smooth vehicular movement, sunny outdoor studio environment. Cinematic quality.',
+            'escape-run': 'POV running fast, escaping from security. Heavy camera shake, breathless rhythm. Sprinting through a narrow backstage corridor with cables and boxes. Blurred motion, high speed, chaotic energy, rushing to the next hideout. Intense action sequence.',
+            'whip-pan': 'Fast chaotic camera movement. The camera spins around quickly 360 degrees. Heavy motion blur, streak lines, unidentifiable background due to speed. A seamless whip-pan transition effect between locations. Disorienting but exciting.',
+            'childhood': 'A heartwarming photograph of an adult sitting next to their childhood self (around 7 years old) on a park bench. The adult smiling warmly at the child version, who looks curious and happy. Soft afternoon sunlight, nostalgic atmosphere, photorealistic, highly detailed, emotional connection, shallow depth of field.',
+            'teenage': 'A touching scene of an adult having a conversation with their teenage self (around 16 years old) in a high school classroom. The teenager wearing school uniform, looking thoughtful. The adult giving advice with a gentle smile. Late afternoon light through windows, cinematic lighting, emotional atmosphere, photorealistic.',
+            'future': 'A profound photograph of a person meeting their elderly self (around 70 years old) in a peaceful garden. The elderly version has grey hair and gentle wrinkles, sitting on a wooden bench. They are holding hands, the older self sharing wisdom. Golden hour lighting, peaceful atmosphere, photorealistic, deeply emotional.',
+            'time-corridor': 'First-person POV walking through a mysterious glowing corridor. The walls shift and transform, showing glimpses of different time periods - childhood toys, school lockers, family photos. Magical particles floating in the air, dreamlike atmosphere, smooth walking motion, ethereal lighting, transitioning through time.',
+            'product': 'A sleek product rotating 360 degrees on a clean white platform. Professional studio lighting with soft shadows, minimalist aesthetic. Smooth slow rotation, highlighting all angles and details. Premium product photography style, 8K resolution.',
+            'travel': 'Aerial drone shot flying over majestic mountains at sunrise. Golden hour lighting painting the peaks, clouds drifting below. Slow cinematic movement revealing vast wilderness. Epic orchestral music, wind sounds. Breathtaking travel videography, 8K.',
+            'food': 'Close-up shot of a delicious gourmet dish, steam rising gently. Warm restaurant lighting, shallow depth of field focusing on food details. Slow dolly movement around the plate. Ambient restaurant sounds, soft music. Food photography style, appetizing colors.',
+            'pet': 'A cute golden retriever puppy playing in a sunny backyard. Chasing a ball, tail wagging excitedly. Natural daylight, green grass, joyful energy. Tracking shot following the puppy. Happy barking sounds, birds chirping. Heartwarming pet video, photorealistic.'
+        };
+
+        function useTemplate(templateId) {
+            const prompt = templates[templateId];
+            document.getElementById('template-text').textContent = prompt;
+            document.getElementById('template-result').classList.add('show');
+            document.getElementById('result-text').textContent = prompt;
         }
 
         // Display result
         function displayResult(prompt) {
-            const resultSection = document.getElementById('result-section');
-            const resultText = document.getElementById('result-text');
-
-            resultText.textContent = prompt;
-            resultSection.style.display = 'block';
-            resultSection.scrollIntoView({ behavior: 'smooth' });
+            document.getElementById('result-text').textContent = prompt;
+            document.getElementById('result-section').classList.add('show');
+            document.getElementById('result-section').scrollIntoView({ behavior: 'smooth' });
         }
 
         // Copy result
         function copyResult() {
             const text = document.getElementById('result-text').textContent;
             navigator.clipboard.writeText(text).then(() => {
-                const btn = document.querySelector('.copy-btn');
-                const originalText = btn.textContent;
-                btn.textContent = '✅ 已複製！';
-                setTimeout(() => {
-                    btn.textContent = originalText;
-                }, 2000);
+                const btns = document.querySelectorAll('.copy-btn');
+                btns.forEach(btn => {
+                    const original = btn.textContent;
+                    btn.textContent = '✅ 已複製！';
+                    setTimeout(() => btn.textContent = original, 2000);
+                });
             });
         }
+
+        // Copy example
+        function copyExample(btn) {
+            const text = btn.previousElementSibling.textContent;
+            navigator.clipboard.writeText(text).then(() => {
+                const original = btn.textContent;
+                btn.textContent = '✅ 已複製！';
+                setTimeout(() => btn.textContent = original, 2000);
+            });
+        }
+
+        // History management
+        let history = JSON.parse(localStorage.getItem('promptHistory') || '[]');
+
+        function saveToHistory() {
+            const text = document.getElementById('result-text').textContent;
+            if (!text) return;
+
+            const item = {
+                time: new Date().toLocaleString('zh-TW'),
+                content: text
+            };
+
+            history.unshift(item);
+            if (history.length > 20) history.pop();
+
+            localStorage.setItem('promptHistory', JSON.stringify(history));
+            renderHistory();
+
+            document.querySelectorAll('.save-btn').forEach(btn => {
+                const original = btn.textContent;
+                btn.textContent = '✅ 已儲存！';
+                setTimeout(() => btn.textContent = original, 2000);
+            });
+        }
+
+        function renderHistory() {
+            const list = document.getElementById('history-list');
+            if (history.length === 0) {
+                list.innerHTML = '<p style="color: #999; font-size: 13px; text-align: center;">尚無儲存的提示詞</p>';
+                return;
+            }
+
+            list.innerHTML = history.map((item, index) => `
+                <div class="history-item" onclick="loadHistory(${index})">
+                    <div class="time">${item.time}</div>
+                    <div class="content">${item.content}</div>
+                </div>
+            `).join('');
+        }
+
+        function loadHistory(index) {
+            const item = history[index];
+            document.getElementById('result-text').textContent = item.content;
+            document.getElementById('result-section').classList.add('show');
+        }
+
+        function clearHistory() {
+            if (confirm('確定要清除所有歷史紀錄嗎？')) {
+                history = [];
+                localStorage.removeItem('promptHistory');
+                renderHistory();
+            }
+        }
+
+        // Initialize
+        renderHistory();
     </script>
 </body>
 </html>
